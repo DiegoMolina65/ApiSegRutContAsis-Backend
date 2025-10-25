@@ -59,6 +59,7 @@ namespace SegRutContAsis.Business.Services
 
             return new UsuarioReponseDTO
             {
+                IdUsuario = usuario.Id,
                 Token = token,
                 Usuario = usuario.NombreCompleto,
                 Roles = roles
