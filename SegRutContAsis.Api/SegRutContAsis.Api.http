@@ -1,0 +1,6 @@
+@SegRutContAsis.Api_HostAddress = http://localhost:5162
+
+GET {{SegRutContAsis.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
