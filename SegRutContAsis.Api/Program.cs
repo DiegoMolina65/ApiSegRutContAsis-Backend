@@ -83,7 +83,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // En produccion quitar
-app.UseCors("AllowFrontend");
+// app.UseCors("AllowFrontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -93,7 +93,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // En produccion habilitar
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
