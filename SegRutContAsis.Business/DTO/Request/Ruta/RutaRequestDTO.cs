@@ -8,9 +8,9 @@ namespace SegRutContAsis.Business.DTO.Request.Ruta
 {
     public class RutaRequestDTO
     {
-        public int VenId { get; set; }
-        public int? SupId { get; set; } = 0;
-        public string Nombre { get; set; } = "";
-        public string? Comentario { get; set; } = null!;
+        public int venId { get; set; }
+        public int? supId { get; set; } = 0;
+        public string rutNombre { get; set; } = "";
+        public string? rutComentario { get; set; } = null!;
     }
 }

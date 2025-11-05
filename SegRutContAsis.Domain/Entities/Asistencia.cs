@@ -8,14 +8,14 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Asistencia
     {
-        public int Id { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        public int VenId { get; set; }
-        public DateTime? HoraEntrada { get; set; }
-        public DateTime? HoraSalida { get; set; }
-        public decimal Latitud { get; set; }
-        public decimal Longitud { get; set; }
-        public bool EstadoDel { get; set; } = true;
+        public int asiId { get; set; }
+        public DateTime asiFechaCreacion { get; set; } = DateTime.Now;
+        public int venId { get; set; }
+        public DateTime? asiHoraEntrada { get; set; }
+        public DateTime? asiHoraSalida { get; set; }
+        public decimal asiLatitud { get; set; }
+        public decimal asiLongitud { get; set; }
+        public bool asiEstadoDel { get; set; } = true;
 
         // Relaciones
         public Vendedor Vendedor { get; set; } = null!;

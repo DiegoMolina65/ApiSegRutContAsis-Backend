@@ -20,16 +20,14 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
-        // =========================
         // Crear evidencia
-        // =========================
         public async Task<EvidenciaResponseDTO> CrearEvidencia(EvidenciaRequestDTO requestDTO)
         {
             var existe = await _context.Evidencia
                 .Include(e => e.Visita)
                 .AnyAsync(e => e.visId == requestDTO.VisitaId &&
-                               e.Tipo == requestDTO.Tipo &&
-                               e.Visita.Ruta.EstadoDel);
+                               e.eviTipo == requestDTO.eviTipo &&
+                               e.Visita.Ruta.rutEstadoDel);
 
             if (existe)
                 throw new Exception("Ya existe una evidencia del mismo tipo para esta visita");
@@ -37,8 +35,8 @@ namespace SegRutContAsis.Business.Services
             var evidencia = new Evidencia
             {
                 visId = requestDTO.VisitaId,
-                Tipo = requestDTO.Tipo,
-                Observaciones = requestDTO.Observaciones
+                eviTipo = requestDTO.eviTipo,
+                eviObservaciones = requestDTO.eviObservaciones
             };
 
             _context.Evidencia.Add(evidencia);
@@ -46,107 +44,97 @@ namespace SegRutContAsis.Business.Services
 
             return new EvidenciaResponseDTO
             {
-                Id = evidencia.Id,
-                FechaCreacion = evidencia.FechaCreacion,
+                eviId = evidencia.eviId,
+                eviFechaCreacion = evidencia.eviFechaCreacion,
                 VisitaId = evidencia.visId,
-                Tipo = evidencia.Tipo,
-                Observaciones = evidencia.Observaciones
+                eviTipo = evidencia.eviTipo,
+                eviObservaciones = evidencia.eviObservaciones
             };
         }
 
-
-        // =========================
         // Obtener evidencia
-        // =========================
         public async Task<List<EvidenciaResponseDTO>> ObtenerEvidencia()
         {
             return await _context.Evidencia
                 .Include(e => e.Visita)
-                .Where(e => e.Visita.Ruta.EstadoDel)
+                .Where(e => e.Visita.Ruta.rutEstadoDel)
                 .Select(e => new EvidenciaResponseDTO
                 {
-                    Id = e.Id,
-                    FechaCreacion = e.FechaCreacion,
+                    eviId = e.eviId,
+                    eviFechaCreacion = e.eviFechaCreacion,
                     VisitaId = e.visId,
-                    Tipo = e.Tipo,
-                    Observaciones = e.Observaciones
+                    eviTipo = e.eviTipo,
+                    eviObservaciones = e.eviObservaciones
                 }).ToListAsync();
         }
 
 
-        // =========================
         // Obtener evidencia por ID
-        // =========================
         public async Task<EvidenciaResponseDTO> ObtenerEvidenciaId(int id)
         {
             var e = await _context.Evidencia
                 .Include(ev => ev.Visita)
-                .Where(ev => ev.Id == id && ev.Visita.Ruta.EstadoDel)
+                .Where(ev => ev.eviId == id && ev.Visita.Ruta.rutEstadoDel)
                 .FirstOrDefaultAsync();
 
             if (e == null) throw new Exception("Evidencia no encontrada");
 
             return new EvidenciaResponseDTO
             {
-                Id = e.Id,
-                FechaCreacion = e.FechaCreacion,
+                eviId = e.eviId,
+                eviFechaCreacion = e.eviFechaCreacion,
                 VisitaId = e.visId,
-                Tipo = e.Tipo,
-                Observaciones = e.Observaciones
+                eviTipo = e.eviTipo,
+                eviObservaciones = e.eviObservaciones
             };
         }
 
-
-        // =========================
         // Actualizar evidencia
-        // =========================
         public async Task<EvidenciaResponseDTO> ActualizarEvidencia(int id, EvidenciaRequestDTO requestDTO)
         {
-            var e = await _context.Evidencia.Include(ev => ev.Visita).FirstOrDefaultAsync(ev => ev.Id == id);
+            var e = await _context.Evidencia.Include(ev => ev.Visita).FirstOrDefaultAsync(ev => ev.eviId == id);
 
-            if (e == null || !e.Visita.Ruta.EstadoDel)
+            if (e == null || !e.Visita.Ruta.rutEstadoDel)
                 throw new Exception("Evidencia no encontrada");
 
             var existe = await _context.Evidencia
                 .Include(ev => ev.Visita)
                 .AnyAsync(ev => ev.visId == requestDTO.VisitaId &&
-                                ev.Tipo == requestDTO.Tipo &&
-                                ev.Id != id &&
-                                ev.Visita.Ruta.EstadoDel);
+                                ev.eviTipo == requestDTO.eviTipo &&
+                                ev.eviId != id &&
+                                ev.Visita.Ruta.rutEstadoDel);
 
             if (existe)
                 throw new Exception("Ya existe una evidencia del mismo tipo para esta visita");
 
             e.visId = requestDTO.VisitaId;
-            e.Tipo = requestDTO.Tipo;
-            e.Observaciones = requestDTO.Observaciones;
+            e.eviTipo = requestDTO.eviTipo;
+            e.eviObservaciones = requestDTO.eviObservaciones;
 
             await _context.SaveChangesAsync();
 
             return new EvidenciaResponseDTO
             {
-                Id = e.Id,
-                FechaCreacion = e.FechaCreacion,
+                eviId = e.eviId,
+                eviFechaCreacion = e.eviFechaCreacion,
                 VisitaId = e.visId,
-                Tipo = e.Tipo,
-                Observaciones = e.Observaciones
+                eviTipo = e.eviTipo,
+                eviObservaciones = e.eviObservaciones
             };
         }
 
-        // =========================
         // Filtros de evidencia
-        // =========================
         public async Task<List<EvidenciaResponseDTO>> ObtenerEvidenciaPorVisita(int visitaId)
         {
             return await _context.Evidencia
-                .Where(e => e.visId == visitaId && e.Visita.Ruta.EstadoDel)
+                .Where(e => e.visId == visitaId && e.Visita.Ruta.rutEstadoDel)
                 .Select(e => new EvidenciaResponseDTO
                 {
-                    Id = e.Id,
-                    FechaCreacion = e.FechaCreacion,
+                    eviId = e.eviId,
+                    eviFechaCreacion = e.eviFechaCreacion,
                     VisitaId = e.visId,
-                    Tipo = e.Tipo,
-                    Observaciones = e.Observaciones
+                    eviTipo = e.eviTipo,
+                    eviObservaciones = e.eviObservaciones
                 }).ToListAsync();
         }
 
@@ -155,14 +143,14 @@ namespace SegRutContAsis.Business.Services
             return await _context.Evidencia
                 .Include(e => e.Visita)
                 .ThenInclude(v => v.Ruta)
-                .Where(e => e.Visita.Ruta.VendedorId == venId && e.Visita.Ruta.EstadoDel)
+                .Where(e => e.Visita.Ruta.VendedorId == venId && e.Visita.Ruta.rutEstadoDel)
                 .Select(e => new EvidenciaResponseDTO
                 {
-                    Id = e.Id,
-                    FechaCreacion = e.FechaCreacion,
+                    eviId = e.eviId,
+                    eviFechaCreacion = e.eviFechaCreacion,
                     VisitaId = e.visId,
-                    Tipo = e.Tipo,
-                    Observaciones = e.Observaciones
+                    eviTipo = e.eviTipo,
+                    eviObservaciones = e.eviObservaciones
                 }).ToListAsync();
         }
 
@@ -170,14 +158,14 @@ namespace SegRutContAsis.Business.Services
         {
             return await _context.Evidencia
                 .Include(e => e.Visita)
-                .Where(e => e.Tipo == tipo && e.Visita.Ruta.EstadoDel)
+                .Where(e => e.eviTipo == tipo && e.Visita.Ruta.rutEstadoDel)
                 .Select(e => new EvidenciaResponseDTO
                 {
-                    Id = e.Id,
-                    FechaCreacion = e.FechaCreacion,
+                    eviId = e.eviId,
+                    eviFechaCreacion = e.eviFechaCreacion,
                     VisitaId = e.visId,
-                    Tipo = e.Tipo,
-                    Observaciones = e.Observaciones
+                    eviTipo = e.eviTipo,
+                    eviObservaciones = e.eviObservaciones
                 }).ToListAsync();
         }
     }

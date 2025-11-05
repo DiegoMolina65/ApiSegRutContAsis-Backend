@@ -8,13 +8,13 @@ namespace SegRutContAsis.Business.DTO.Request.Usuario
 {
     public class UsuarioRegistroRequestDTO
     {
-        public string NombreCompleto { get; set; }
-        public string Correo { get; set; }
-        public string Telefono { get; set; }
-        public string NitEmpleado { get; set; }
-        public string CarnetIdentidad  { get; set; }
-        public string UsuarioLog { get; set; }
-        public string ContrasenaLog { get; set; }
+        public string usrNombreCompleto { get; set; }
+        public string usrCorreo { get; set; }
+        public string usrTelefono { get; set; }
+        public string usrNitEmpleado { get; set; }
+        public string usrCarnetIdentidad { get; set; }
+        public string usrUsuarioLog { get; set; }
+        public string usrContrasenaLog { get; set; }
         public List<string> Roles { get; set; }
     }
 }

@@ -8,22 +8,21 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Visita
     {
-        public int Id { get; set; }
-        public DateTime VisFechaCreacion { get; set; } = DateTime.Now;
-        public int RutId { get; set; }
-        public int DirClId { get; set; }
-        public DateTime? VisFecha { get; set; }
-        public TimeSpan? VisHora { get; set; }
-        public int? VisSemanaDelMes { get; set; }
-        public decimal VisLatitud { get; set; }
-        public decimal VisLongitud { get; set; }
-        public bool VisEstadoDel { get; set; } = true;
-        public string? VisComentario { get; set; }
+        public int visId { get; set; }
+        public DateTime visFechaCreacion { get; set; } = DateTime.Now;
+        public int rutId { get; set; }
+        public int dirClId { get; set; }
+        public DateTime? visFecha { get; set; }
+        public int? visSemanaDelMes { get; set; }
+        public bool visEstadoDel { get; set; } = true;
+        public string? visComentario { get; set; }
 
         // Relaciones
         public Ruta Ruta { get; set; } = null!;
         public ICollection<Evidencia> Evidencias { get; set; } = new List<Evidencia>();
         public DireccionCliente DireccionCliente { get; set; } = null!;
+        public ICollection<MarcarLlegadaVisita> MarcarLlegadaVisitas { get; set; }
+
 
     }
 }

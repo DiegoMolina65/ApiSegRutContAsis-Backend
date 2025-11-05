@@ -8,10 +8,13 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Administrador
     {
-        public int Id { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        public int UsuarioId { get; set; }
+        public int admId { get; set; }
+        public DateTime admFechaCreacion { get; set; } = DateTime.Now;
+        public int usrId { get; set; }
+        public bool admEstadoDel { get; set; } = true;
+
+        // Relaciones
         public Usuario Usuario { get; set; }
-        public bool EstadoDel { get; set; } = true;
+
     }
 }

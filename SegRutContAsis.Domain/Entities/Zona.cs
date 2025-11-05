@@ -8,10 +8,10 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Zona
     {
-        public int Id { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        public string Nombre { get; set; }
-        public string Descripcion { get; set; }
-        public bool EstadoDel { get; set; } = true;
+        public int zonId { get; set; }
+        public DateTime zonFechaCreacion { get; set; } = DateTime.Now;
+        public string zonNombre { get; set; }
+        public string zonDescripcion { get; set; }
+        public bool zonEstadoDel { get; set; } = true;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SegRutContAsis.Business.DTO.Request.Zona;
+using SegRutContAsis.Business.DTO.Response.Zona;
 using SegRutContAsis.Business.Interfaces.Zona;
 
 
@@ -59,5 +60,20 @@ namespace SegRutContAsis.Api.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+        [HttpGet("obtenerZonaPorId/{id}")]
+        public async Task<ActionResult<ZonaResponseDTO>> ObtenerZonaPorId(int id)
+        {
+            try
+            {
+                var zona = await _zonaService.ObtenerZonaPorId(id);
+                return Ok(zona);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { mensaje = ex.Message });
+            }
+        }
+
     }
 }

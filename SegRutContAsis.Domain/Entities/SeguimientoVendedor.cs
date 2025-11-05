@@ -8,11 +8,11 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class SeguimientoVendedor
     {
-        public int Id { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public int segId { get; set; }
+        public DateTime segFechaCreacion { get; set; } = DateTime.Now;
         public int venId { get; set; }
-        public decimal Latitud { get; set; } 
-        public decimal Longitud { get; set; } 
+        public decimal segLatitud { get; set; } 
+        public decimal segLongitud { get; set; } 
 
         // Relaciones
         public Vendedor Vendedor { get; set; } = null!;

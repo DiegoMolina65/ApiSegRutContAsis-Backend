@@ -20,18 +20,16 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
-        // =========================
         // Crear Ruta
-        // =========================
         public async Task<RutaResponseDTO> CrearRuta(RutaRequestDTO dto)
         {
             var ruta = new Ruta
             {
-                VendedorId = dto.VenId,
-                SupervisorId = dto.SupId,
-                Nombre = dto.Nombre,
-                Comentario = dto.Comentario,
-                EstadoDel = true
+                VendedorId = dto.venId,
+                SupervisorId = dto.supId,
+                rutNombre = dto.rutNombre,
+                rutComentario = dto.rutComentario,
+                rutEstadoDel = true
             };
 
             _context.Ruta.Add(ruta);
@@ -39,46 +37,45 @@ namespace SegRutContAsis.Business.Services
 
             return new RutaResponseDTO
             {
-                Id = ruta.Id,
-                VenId = ruta.VendedorId,
-                SupId = ruta.SupervisorId,
-                Nombre = ruta.Nombre,
-                Comentario = ruta.Comentario
+                rutId = ruta.rutId,
+                venId = ruta.VendedorId,
+                supId = ruta.SupervisorId,
+                rutNombre = ruta.rutNombre,
+                rutComentario = ruta.rutComentario
             };
         }
 
-        // =========================
         // Obtener Rutas
-        // =========================
         public async Task<List<RutaResponseDTO>> ObtenerRutas()
         {
             return await _context.Ruta
-                .Where(r => r.EstadoDel)
+                .Where(r => r.rutEstadoDel)
+                .Include(r => r.Vendedor)
                 .Select(r => new RutaResponseDTO
                 {
-                    Id = r.Id,
-                    VenId = r.VendedorId,
-                    SupId = r.SupervisorId,
-                    Nombre = r.Nombre,
-                    Comentario = r.Comentario
+                    rutId = r.rutId,
+                    venId = r.VendedorId,
+                    supId = r.SupervisorId,
+                    rutNombre = r.rutNombre,
+                    rutComentario = r.rutComentario,
+                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
                 })
                 .ToListAsync();
         }
 
-        // =========================
         // Obtener Ruta por Id
-        // =========================
         public async Task<RutaResponseDTO> ObtenerRutaId(int id)
         {
             var rutaDTO = await _context.Ruta
-                .Where(r => r.EstadoDel && r.Id == id)
+                .Where(r => r.rutEstadoDel && r.rutId == id)
                 .Select(r => new RutaResponseDTO
                 {
-                    Id = r.Id,
-                    VenId = r.VendedorId,
-                    SupId = r.SupervisorId,
-                    Nombre = r.Nombre,
-                    Comentario = r.Comentario
+                    rutId = r.rutId,
+                    venId = r.VendedorId,
+                    supId = r.SupervisorId,
+                    rutNombre = r.rutNombre,
+                    rutComentario = r.rutComentario,
+                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
                 })
                 .FirstOrDefaultAsync();
 
@@ -88,78 +85,72 @@ namespace SegRutContAsis.Business.Services
             return rutaDTO;
         }
 
-        // =========================
         // Actualizar Ruta
-        // =========================
         public async Task<RutaResponseDTO> ActualizarRuta(int id, RutaRequestDTO dto)
         {
             var ruta = await _context.Ruta.FindAsync(id);
             if (ruta == null) throw new Exception("Ruta no encontrada");
 
-            ruta.VendedorId = dto.VenId;
-            ruta.SupervisorId = dto.SupId;
-            ruta.Nombre = dto.Nombre;
-            ruta.Comentario = dto.Comentario;
+            ruta.VendedorId = dto.venId;
+            ruta.SupervisorId = dto.supId;
+            ruta.rutNombre = dto.rutNombre;
+            ruta.rutComentario = dto.rutComentario;
 
             await _context.SaveChangesAsync();
 
             return new RutaResponseDTO
             {
-                Id = ruta.Id,
-                VenId = ruta.VendedorId,
-                SupId = ruta.SupervisorId,
-                Nombre = ruta.Nombre,
-                Comentario = ruta.Comentario
+                rutId = ruta.rutId,
+                venId = ruta.VendedorId,
+                supId = ruta.SupervisorId,
+                rutNombre = ruta.rutNombre,
+                rutComentario = ruta.rutComentario
             };
         }
 
-        // =========================
         // Deshabilitar Ruta
-        // =========================
         public async Task<bool> DeshabilitarRuta(int id)
         {
             var ruta = await _context.Ruta.FindAsync(id);
             if (ruta == null) throw new Exception("Ruta no encontrada");
 
-            ruta.EstadoDel = false;
+            ruta.rutEstadoDel = false;
             await _context.SaveChangesAsync();
             return true;
         }
 
-        // =========================
         // Obtener Rutas por Vendedor
-        // =========================
         public async Task<List<RutaResponseDTO>> ObtenerRutasPorVendedor(int venId)
         {
             return await _context.Ruta
-                .Where(r => r.EstadoDel && r.VendedorId == venId)
+                .Where(r => r.rutEstadoDel && r.VendedorId == venId)
 
                 .Select(r => new RutaResponseDTO
                 {
-                    Id = r.Id,
-                    VenId = r.VendedorId,
-                    SupId = r.SupervisorId,
-                    Nombre = r.Nombre,
-                    Comentario = r.Comentario
+                    rutId = r.rutId,
+                    venId = r.VendedorId,
+                    supId = r.SupervisorId,
+                    rutNombre = r.rutNombre,
+                    rutComentario = r.rutComentario,
+                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
                 })
                 .ToListAsync();
         }
 
-        // =========================
         // Obtener Rutas por Supervisor
-        // =========================
         public async Task<List<RutaResponseDTO>> ObtenerRutasPorSupervisor(int supId)
         {
             return await _context.Ruta
-                .Where(r => r.EstadoDel && r.SupervisorId == supId)
+                .Where(r => r.rutEstadoDel && r.SupervisorId == supId)
 
                 .Select(r => new RutaResponseDTO
                 {
-                    Id = r.Id,
-                    VenId = r.VendedorId,
-                    SupId = r.SupervisorId,
-                    Nombre = r.Nombre,
-                    Comentario = r.Comentario
+                    rutId = r.rutId,
+                    venId = r.VendedorId,
+                    supId = r.SupervisorId,
+                    rutNombre = r.rutNombre,
+                    rutComentario = r.rutComentario,
+                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
                 })
                 .ToListAsync();
         }

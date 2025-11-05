@@ -14,5 +14,6 @@ namespace SegRutContAsis.Business.Interfaces.Zona
         Task<ZonaResponseDTO> CrearZona(ZonaRequestDTO request);
         Task<ZonaResponseDTO> ActualizarZona(int id, ZonaRequestDTO request);
         Task<bool> DeshabilitarZona(int id);
+        Task<ZonaResponseDTO> ObtenerZonaPorId(int id);
     }
 }

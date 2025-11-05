@@ -9,7 +9,7 @@ namespace SegRutContAsis.Business.DTO.Request.Evidencia
     public class EvidenciaRequestDTO
     {
         public int VisitaId { get; set; }
-        public string? Tipo { get; set; } 
-        public string? Observaciones { get; set; } 
+        public string? eviTipo { get; set; } 
+        public string? eviObservaciones { get; set; } 
     }
 }

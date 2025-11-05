@@ -27,66 +27,60 @@ namespace SegRutContAsis.Business.Services
             _configuration = configuration;
         }
 
-        // =========================
         // MÉTODO LOGOUT USUARIO
-        // =========================
         public async Task<bool> LogoutUsuario()
         { 
             return await Task.FromResult(true);
         }
 
-        // =========================
         // LOGIN
-        // =========================
         public async Task<UsuarioReponseDTO> LoginUsuario(UsuarioRequestDTO request)
         {
             var usuario = await _context.Usuario
                  .Include(u => u.UsuarioRoles)
                      .ThenInclude(ur => ur.Rol)
-                 .FirstOrDefaultAsync(u => u.UsuarioLog == request.UsuarioLog);
+                 .FirstOrDefaultAsync(u => u.usrUsuarioLog == request.UsuarioLog);
 
-            if (!usuario.EstadoDel)
+            if (!usuario.usrEstadoDel)
                 throw new Exception("El usuario está desactivado. Contacte con el administrador.");
 
             if (usuario == null)
                 throw new Exception("Usuario no encontrado");
 
-            if (!VerifyPassword(request.ContrasenaLog, usuario.ContrasenaLog))
+            if (!VerifyPassword(request.ContrasenaLog, usuario.usrContrasenaLog))
                 throw new Exception("Contraseña incorrecta");
 
-            var roles = usuario.UsuarioRoles.Select(r => r.Rol.Nombre).ToList();
+            var roles = usuario.UsuarioRoles.Select(r => r.Rol.rolNombre).ToList();
             var token = GenerateJwtToken(usuario, roles);
 
             return new UsuarioReponseDTO
             {
-                IdUsuario = usuario.Id,
+                usrId = usuario.usrId,
                 Token = token,
-                Usuario = usuario.NombreCompleto,
+                usrNombreCompleto = usuario.usrNombreCompleto,
                 Roles = roles
             };
         }
 
-        // =========================
         // REGISTRAR USUARIO (MULTI-ROL)
-        // =========================
         public async Task<Usuario> RegistrarUsuario(UsuarioRegistroRequestDTO dto)
         {
             var existeUsuario = await _context.Usuario
-                .AnyAsync(u => u.UsuarioLog == dto.UsuarioLog || u.Correo == dto.Correo);
+                .AnyAsync(u => u.usrUsuarioLog == dto.usrUsuarioLog || u.usrCorreo == dto.usrCorreo);
             if (existeUsuario)
                 throw new Exception("Usuario o correo ya existe.");
 
             var usuario = new Usuario
             {
-                NombreCompleto = dto.NombreCompleto,
-                Correo = dto.Correo,
-                Telefono = dto.Telefono,
-                NitEmpleado = dto.NitEmpleado,
-                CarnetIdentidad = dto.CarnetIdentidad,
-                UsuarioLog = dto.UsuarioLog,
-                ContrasenaLog = HashPassword(dto.ContrasenaLog),
-                EstadoDel = true,
-                FechaCreacion = DateTime.Now
+                usrNombreCompleto = dto.usrNombreCompleto,
+                usrCorreo = dto.usrCorreo,
+                usrTelefono = dto.usrTelefono,
+                usrNitEmpleado = dto.usrNitEmpleado,
+                usrCarnetIdentidad = dto.usrCarnetIdentidad,
+                usrUsuarioLog = dto.usrUsuarioLog,
+                usrContrasenaLog = HashPassword(dto.usrContrasenaLog),
+                usrEstadoDel = true,
+                usrFechaCreacion = DateTime.Now
             };
 
             _context.Usuario.Add(usuario);
@@ -94,13 +88,13 @@ namespace SegRutContAsis.Business.Services
 
             foreach (var rolNombre in dto.Roles)
             {
-                var rol = await _context.Rol.FirstOrDefaultAsync(r => r.Nombre.ToUpper() == rolNombre.ToUpper());
+                var rol = await _context.Rol.FirstOrDefaultAsync(r => r.rolNombre.ToUpper() == rolNombre.ToUpper());
                 if (rol == null) continue;
 
                 _context.UsuarioRol.Add(new UsuarioRol
                 {
-                    usrID = usuario.Id,
-                    rolId = rol.Id
+                    usrID = usuario.usrId,
+                    rolId = rol.rolId
                 });
 
                 switch (rolNombre.ToUpper())
@@ -108,27 +102,27 @@ namespace SegRutContAsis.Business.Services
                     case "ADMINISTRADOR":
                         _context.Administrador.Add(new Administrador
                         {
-                            UsuarioId = usuario.Id,
-                            FechaCreacion = DateTime.Now,
-                            EstadoDel = true
+                            usrId = usuario.usrId,
+                            admFechaCreacion = DateTime.Now,
+                            admEstadoDel = true
                         });
                         break;
 
                     case "SUPERVISOR":
                         _context.Supervisor.Add(new Supervisor
                         {
-                            UsuarioId = usuario.Id,
-                            FechaCreacion = DateTime.Now,
-                            EstadoDel = true
+                            usrId = usuario.usrId,
+                            supFechaCreacion = DateTime.Now,
+                            supEstadoDel = true
                         });
                         break;
 
                     case "VENDEDOR":
                         _context.Vendedor.Add(new Vendedor
                         {
-                            UsuarioId = usuario.Id,
-                            FechaCreacion = DateTime.Now,
-                            EstadoDel = true
+                            usrId = usuario.usrId,
+                            venFechaCreacion = DateTime.Now,
+                            venEstadoDel = true
                         });
                         break;
                 }
@@ -138,87 +132,204 @@ namespace SegRutContAsis.Business.Services
             return usuario;
         }
 
-        // =========================
         // OBTENER TODOS LOS USUARIOS
-        // =========================
         public async Task<List<UsuarioReponseDTO>> ObtenerUsuarios()
         {
             return await _context.Usuario
-                .Where(u => u.EstadoDel == true)
+                .Where(u => u.usrEstadoDel == true)
                 .Include(u => u.UsuarioRoles)
                     .ThenInclude(ur => ur.Rol)
                 .Select(u => new UsuarioReponseDTO
                 {
-                    IdUsuario = u.Id,
-                    Usuario = u.NombreCompleto,
-                    Roles = u.UsuarioRoles.Select(r => r.Rol.Nombre).ToList(),
+                    usrId = u.usrId,
+                    usrNombreCompleto = u.usrNombreCompleto,
+                    usrCorreo = u.usrCorreo,
+                    usrCarnetIdentidad = u.usrCarnetIdentidad,
+                    usrNitEmpleado = u.usrNitEmpleado,
+                    usrTelefono = u.usrTelefono,
+                    usrUsuarioLog = u.usrUsuarioLog,
+                    usrContrasenaLog = u.usrContrasenaLog,
+                    usrEstadoDel = u.usrEstadoDel,
+                    Roles = u.UsuarioRoles.Select(r => r.Rol.rolNombre).ToList(),
                     Token = null 
                 })
                 .ToListAsync();
         }
 
-        // =========================
         // OBTENER USUARIO POR ID
-        // =========================
         public async Task<UsuarioReponseDTO> ObtenerUsuarioId(int id)
         {
             var usuario = await _context.Usuario
-                .Where(u => u.EstadoDel == true)
+                .Where(u => u.usrEstadoDel == true)
                 .Include(u => u.UsuarioRoles)
                     .ThenInclude(ur => ur.Rol)
-                .FirstOrDefaultAsync(u => u.Id == id);
+                .FirstOrDefaultAsync(u => u.usrId == id);
 
             if (usuario == null)
                 throw new Exception("Usuario no encontrado.");
 
             return new UsuarioReponseDTO
             {
-                IdUsuario = usuario.Id,
-                Usuario = usuario.NombreCompleto,
-                Roles = usuario.UsuarioRoles.Select(r => r.Rol.Nombre).ToList()
+                usrId = usuario.usrId,
+                usrNombreCompleto = usuario.usrNombreCompleto,
+                usrCorreo = usuario.usrCorreo,
+                usrCarnetIdentidad = usuario.usrCarnetIdentidad,
+                usrNitEmpleado = usuario.usrNitEmpleado,
+                usrTelefono = usuario.usrTelefono,
+                usrUsuarioLog = usuario.usrUsuarioLog,
+                usrContrasenaLog = usuario.usrContrasenaLog,
+                usrEstadoDel = usuario.usrEstadoDel,
+                Roles = usuario.UsuarioRoles.Select(r => r.Rol.rolNombre).ToList()
             };
         }
 
-        // =========================
         // ACTUALIZAR USUARIO
-        // =========================
         public async Task<Usuario> ActualizarUsuario(int id, UsuarioRegistroRequestDTO dto)
         {
-            var usuario = await _context.Usuario.FindAsync(id);
+            var usuario = await _context.Usuario
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol) 
+                .FirstOrDefaultAsync(u => u.usrId == id);
+
             if (usuario == null)
                 throw new Exception("Usuario no encontrado.");
 
-            usuario.NombreCompleto = dto.NombreCompleto;
-            usuario.Correo = dto.Correo;
-            usuario.Telefono = dto.Telefono;
-            usuario.NitEmpleado = dto.NitEmpleado;
-            usuario.CarnetIdentidad = dto.CarnetIdentidad;
-            usuario.UsuarioLog = dto.UsuarioLog;
+            usuario.usrNombreCompleto = dto.usrNombreCompleto;
+            usuario.usrCorreo = dto.usrCorreo;
+            usuario.usrTelefono = dto.usrTelefono;
+            usuario.usrNitEmpleado = dto.usrNitEmpleado;
+            usuario.usrCarnetIdentidad = dto.usrCarnetIdentidad;
+            usuario.usrUsuarioLog = dto.usrUsuarioLog;
 
-            if (!string.IsNullOrEmpty(dto.ContrasenaLog))
-                usuario.ContrasenaLog = HashPassword(dto.ContrasenaLog);
+            if (!string.IsNullOrEmpty(dto.usrContrasenaLog))
+                usuario.usrContrasenaLog = HashPassword(dto.usrContrasenaLog);
+
+            var rolesActuales = usuario.UsuarioRoles
+                .Where(ur => ur.Rol != null)
+                .Select(ur => ur.Rol.rolNombre.ToUpper())
+                .ToList();
+
+            var rolesNuevos = dto.Roles.Select(r => r.ToUpper()).ToList();
+
+            var rolesAEliminar = usuario.UsuarioRoles
+                .Where(ur => ur.Rol != null && !rolesNuevos.Contains(ur.Rol.rolNombre.ToUpper()))
+                .ToList();
+
+            foreach (var ur in rolesAEliminar)
+            {
+                _context.UsuarioRol.Remove(ur);
+
+                switch (ur.Rol.rolNombre.ToUpper())
+                {
+                    case "ADMINISTRADOR":
+                        var admin = await _context.Administrador.FirstOrDefaultAsync(a => a.usrId == id);
+                        if (admin != null) _context.Administrador.Remove(admin);
+                        break;
+                    case "SUPERVISOR":
+                        var sup = await _context.Supervisor.FirstOrDefaultAsync(s => s.usrId == id);
+                        if (sup != null) _context.Supervisor.Remove(sup);
+                        break;
+                    case "VENDEDOR":
+                        var ven = await _context.Vendedor.FirstOrDefaultAsync(v => v.usrId == id);
+                        if (ven != null) _context.Vendedor.Remove(ven);
+                        break;
+                }
+            }
+            var rolesParaAgregar = rolesNuevos.Except(rolesActuales).ToList();
+            foreach (var rolNombre in rolesParaAgregar)
+            {
+                var rol = await _context.Rol.FirstOrDefaultAsync(r => r.rolNombre.ToUpper() == rolNombre);
+                if (rol == null) continue;
+
+                _context.UsuarioRol.Add(new UsuarioRol
+                {
+                    usrID = usuario.usrId,
+                    rolId = rol.rolId
+                });
+
+                switch (rolNombre)
+                {
+                    case "ADMINISTRADOR":
+                        _context.Administrador.Add(new Administrador
+                        {
+                            usrId = usuario.usrId,
+                            admFechaCreacion = DateTime.Now,
+                            admEstadoDel = true
+                        });
+                        break;
+                    case "SUPERVISOR":
+                        _context.Supervisor.Add(new Supervisor
+                        {
+                            usrId = usuario.usrId,
+                            supFechaCreacion = DateTime.Now,
+                            supEstadoDel = true
+                        });
+                        break;
+                    case "VENDEDOR":
+                        _context.Vendedor.Add(new Vendedor
+                        {
+                            usrId = usuario.usrId,
+                            venFechaCreacion = DateTime.Now,
+                            venEstadoDel = true
+                        });
+                        break;
+                }
+            }
 
             await _context.SaveChangesAsync();
             return usuario;
         }
 
-        // =========================
         // DESHABILITAR USUARIO
-        // =========================
         public async Task<bool> DeshabilitarUsuario(int id)
         {
             var usuario = await _context.Usuario.FindAsync(id);
             if (usuario == null) return false;
 
-            usuario.EstadoDel = false;
+            usuario.usrEstadoDel = false;
             await _context.SaveChangesAsync();
             return true;
         }
 
+        // OBTENER TODOS LOS VENDEDORES ACTIVOS
+        public async Task<List<UsuarioReponseDTO>> ObtenerVendedores()
+        {
+            return await _context.Vendedor
+                .Include(v => v.Usuario)
+                    .ThenInclude(u => u.UsuarioRoles)
+                        .ThenInclude(ur => ur.Rol)
+                .Where(v => v.venEstadoDel)
+                .Select(v => new UsuarioReponseDTO
+                {
+                    usrId = v.Usuario.usrId,
+                    usrNombreCompleto = v.Usuario.usrNombreCompleto,
+                    usrCorreo = v.Usuario.usrCorreo,
+                    Roles = v.Usuario.UsuarioRoles.Select(ur => ur.Rol.rolNombre).ToList(),
+                    VendedorId = v.venId
+                })
+                .ToListAsync();
+        }
 
-        // =========================
+        // OBTENER TODOS LOS SUPERVISORES ACTIVOS
+        public async Task<List<UsuarioReponseDTO>> ObtenerSupervisores()
+        {
+            return await _context.Supervisor
+                .Include(s => s.Usuario)
+                    .ThenInclude(u => u.UsuarioRoles)
+                        .ThenInclude(ur => ur.Rol)
+                .Where(s => s.supEstadoDel)
+                .Select(s => new UsuarioReponseDTO
+                {
+                    usrId = s.Usuario.usrId,
+                    usrNombreCompleto = s.Usuario.usrNombreCompleto,
+                    usrCorreo = s.Usuario.usrCorreo,
+                    Roles = s.Usuario.UsuarioRoles.Select(ur => ur.Rol.rolNombre).ToList(),
+                    SupervisorId = s.supId
+                })
+                .ToListAsync();
+        }
+
         // HASH DE CONTRASEÑA
-        // =========================
         private string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -233,15 +344,13 @@ namespace SegRutContAsis.Business.Services
             return hashOfInput == hash;
         }
 
-        // =========================
         // JWT
-        // =========================
         public string GenerateJwtToken(Usuario usuario, List<string> roles)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, usuario.UsuarioLog),
-                new Claim("id", usuario.Id.ToString())
+                new Claim(ClaimTypes.Name, usuario.usrUsuarioLog),
+                new Claim("id", usuario.usrId.ToString())
             };
 
             foreach (var rol in roles)

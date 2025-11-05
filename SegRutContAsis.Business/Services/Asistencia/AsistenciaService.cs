@@ -21,24 +21,22 @@ namespace SegRutContAsis.Business.Services
         }
 
 
-        // =========================
-        // RegistrarEntrada
-        // =========================
+        // Registrar Entrada
         public async Task<AsistenciaResponseDTO> RegistrarEntrada(AsistenciaRequestDTO dto)
         {
             var hoy = DateTime.Now.Date;
             var existe = await _context.Asistencia
-                .FirstOrDefaultAsync(a => a.VenId == dto.VenId && a.HoraEntrada.HasValue && a.HoraEntrada.Value.Date == hoy);
+                .FirstOrDefaultAsync(a => a.venId == dto.venId && a.asiHoraEntrada.HasValue && a.asiHoraEntrada.Value.Date == hoy);
 
             if (existe != null)
                 throw new Exception("El vendedor ya marcó entrada hoy.");
 
             var asistencia = new Asistencia
             {
-                VenId = dto.VenId,
-                HoraEntrada = DateTime.Now,
-                Latitud = dto.Latitud,
-                Longitud = dto.Longitud
+                venId = dto.venId,
+                asiHoraEntrada = DateTime.Now,
+                asiLatitud = dto.asiLatitud,
+                asiLongitud = dto.asiLongitud
             };
 
             _context.Asistencia.Add(asistencia);
@@ -46,42 +44,40 @@ namespace SegRutContAsis.Business.Services
 
             return new AsistenciaResponseDTO
             {
-                Id = asistencia.Id,
-                VenId = asistencia.VenId,
-                HoraEntrada = asistencia.HoraEntrada,
-                Latitud = asistencia.Latitud,
-                Longitud = asistencia.Longitud
+                asiId = asistencia.asiId,
+                venId = asistencia.venId,
+                asiHoraEntrada = asistencia.asiHoraEntrada,
+                asiLatitud = asistencia.asiLatitud,
+                asiLongitud = asistencia.asiLongitud
             };
         }
 
 
-        // =========================
         // Registrar Salida
-        // =========================
         public async Task<AsistenciaResponseDTO> RegistrarSalida(int venId)
         {
             var hoy = DateTime.Now.Date;
             var asistencia = await _context.Asistencia
-                .FirstOrDefaultAsync(a => a.VenId == venId && a.HoraEntrada.HasValue && a.HoraEntrada.Value.Date == hoy);
+                .FirstOrDefaultAsync(a => a.venId == venId && a.asiHoraEntrada.HasValue && a.asiHoraEntrada.Value.Date == hoy);
 
             if (asistencia == null)
                 throw new Exception("El vendedor no marcó entrada hoy.");
 
-            if (asistencia.HoraSalida != null)
+            if (asistencia.asiHoraSalida != null)
                 throw new Exception("El vendedor ya marcó salida hoy.");
 
-            asistencia.HoraSalida = DateTime.Now;
+            asistencia.asiHoraSalida = DateTime.Now;
             _context.Asistencia.Update(asistencia);
             await _context.SaveChangesAsync();
 
             return new AsistenciaResponseDTO
             {
-                Id = asistencia.Id,
-                VenId = asistencia.VenId,
-                HoraEntrada = asistencia.HoraEntrada,
-                HoraSalida = asistencia.HoraSalida,
-                Latitud = asistencia.Latitud,
-                Longitud = asistencia.Longitud
+                asiId = asistencia.asiId,
+                venId = asistencia.venId,
+                asiHoraEntrada = asistencia.asiHoraEntrada,
+                asiHoraSalida = asistencia.asiHoraSalida,
+                asiLatitud = asistencia.asiLatitud,
+                asiLongitud = asistencia.asiLongitud
             };
         }
     }

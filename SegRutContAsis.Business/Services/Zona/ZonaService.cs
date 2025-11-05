@@ -20,37 +20,33 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
-        // =========================
         // Obtener Zonas
-        // =========================
         public async Task<List<ZonaResponseDTO>> ObtenerZonas()
         {
             return await _context.Zona
-                .Where(z => z.EstadoDel)
+                .Where(z => z.zonEstadoDel)
                 .Select(z => new ZonaResponseDTO
                 {
-                    IdZona = z.Id,
-                    Nombre = z.Nombre,
-                    Descripcion = z.Descripcion
+                    zonId = z.zonId,
+                    zonNombre = z.zonNombre,
+                    zonDescripcion = z.zonDescripcion
                 })
                 .ToListAsync();
         }
 
-        // =========================
         // Crear Zona
-        // =========================
         public async Task<ZonaResponseDTO> CrearZona(ZonaRequestDTO request)
         {
-            var existe = await _context.Zona.AnyAsync(z => z.Nombre == request.Nombre);
+            var existe = await _context.Zona.AnyAsync(z => z.zonNombre == request.zonNombre);
             if (existe)
                 throw new Exception("Ya existe una zona con ese nombre.");
 
             var zona = new Zona
             {
-                Nombre = request.Nombre,
-                Descripcion = request.Descripcion,
-                EstadoDel = true,
-                FechaCreacion = DateTime.Now
+                zonNombre = request.zonNombre,
+                zonDescripcion = request.zonDescripcion,
+                zonEstadoDel = true,
+                zonFechaCreacion = DateTime.Now
             };
 
             _context.Zona.Add(zona);
@@ -58,54 +54,69 @@ namespace SegRutContAsis.Business.Services
 
             return new ZonaResponseDTO
             {
-                IdZona = zona.Id,
-                Nombre = zona.Nombre,
-                Descripcion = zona.Descripcion
+                zonId = zona.zonId,
+                zonNombre = zona.zonNombre,
+                zonDescripcion = zona.zonDescripcion
             };
         }
 
-        // =========================
         // ACTUALIZAR ZONA
-        // =========================
         public async Task<ZonaResponseDTO> ActualizarZona(int id, ZonaRequestDTO request)
         {
-            var zona = await _context.Zona.FirstOrDefaultAsync(z => z.Id == id && z.EstadoDel);
+            var zona = await _context.Zona.FirstOrDefaultAsync(z => z.zonId == id && z.zonEstadoDel);
             if (zona == null)
                 throw new Exception("Zona no encontrada o desactivada.");
 
             var existe = await _context.Zona
-                .AnyAsync(z => z.Nombre == request.Nombre && z.Id != id);
+                .AnyAsync(z => z.zonNombre == request.zonNombre && z.zonId != id);
             if (existe)
                 throw new Exception("Ya existe otra zona con ese nombre.");
 
-            zona.Nombre = request.Nombre;
-            zona.Descripcion = request.Descripcion;
+            zona.zonNombre = request.zonNombre;
+            zona.zonDescripcion = request.zonDescripcion;
 
             _context.Zona.Update(zona);
             await _context.SaveChangesAsync();
 
             return new ZonaResponseDTO
             {
-                IdZona = zona.Id,
-                Nombre = zona.Nombre,
-                Descripcion = zona.Descripcion
+                zonId = zona.zonId,
+                zonNombre = zona.zonNombre,
+                zonDescripcion = zona.zonDescripcion
             };
         }
 
-        // =========================
         // DESHABILITAR ZONA
-        // =========================
         public async Task<bool> DeshabilitarZona(int id)
         {
-            var zona = await _context.Zona.FirstOrDefaultAsync(z => z.Id == id && z.EstadoDel);
+            var zona = await _context.Zona.FirstOrDefaultAsync(z => z.zonId == id && z.zonEstadoDel);
             if (zona == null)
                 throw new Exception("Zona no encontrada o ya deshabilitada.");
 
-            zona.EstadoDel = false;
+            zona.zonEstadoDel = false;
 
             _context.Zona.Update(zona);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // OBTENER ZONA POR ID
+        public async Task<ZonaResponseDTO> ObtenerZonaPorId(int id)
+        {
+            var zona = await _context.Zona
+                .Where(z => z.zonEstadoDel && z.zonId == id)
+                .Select(z => new ZonaResponseDTO
+                {
+                    zonId = z.zonId,
+                    zonNombre = z.zonNombre,
+                    zonDescripcion = z.zonDescripcion
+                })
+                .FirstOrDefaultAsync();
+
+            if (zona == null)
+                throw new Exception("Zona no encontrada o deshabilitada.");
+
+            return zona;
         }
     }
 }

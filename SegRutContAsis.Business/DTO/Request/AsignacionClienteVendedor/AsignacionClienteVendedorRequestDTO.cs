@@ -8,8 +8,8 @@ namespace SegRutContAsis.Business.DTO.Request.AsignacionClienteVendedor
 {
     public class AsignacionClienteVendedorRequestDTO
     {
-        public int SupId { get; set; }
-        public int VenId { get; set; }
-        public int ClId { get; set; }
+        public int supId { get; set; }
+        public int venId { get; set; }
+        public int clId { get; set; }
     }
 }

@@ -5,16 +5,16 @@ namespace SegRutContAsis.Domain.Entities;
 
 public class Usuario
 {
-    public int Id { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.Now;
-    public string NombreCompleto { get; set; }
-    public string Correo { get; set; }
-    public string Telefono { get; set; }
-    public string NitEmpleado { get; set; }
-    public string CarnetIdentidad { get; set; } 
-    public string UsuarioLog { get; set; }
-    public string ContrasenaLog { get; set; }
-    public bool EstadoDel { get; set; }
+    public int usrId { get; set; }
+    public DateTime usrFechaCreacion { get; set; } = DateTime.Now;
+    public string usrNombreCompleto { get; set; }
+    public string usrCorreo { get; set; }
+    public string usrTelefono { get; set; }
+    public string usrNitEmpleado { get; set; }
+    public string usrCarnetIdentidad { get; set; } 
+    public string usrUsuarioLog { get; set; }
+    public string usrContrasenaLog { get; set; }
+    public bool usrEstadoDel { get; set; }
 
     // Navegación
     public ICollection<UsuarioRol> UsuarioRoles { get; set; }

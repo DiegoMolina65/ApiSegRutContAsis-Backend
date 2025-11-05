@@ -8,7 +8,7 @@ namespace SegRutContAsis.Business.DTO.Request.Rol
 {
     public class RolRequestDTO
     {
-        public string nombre { get; set; }
-        public string descripcion { get; set; } 
+        public string rolNombre { get; set; }
+        public string rolDescripcion { get; set; } 
     }
 }

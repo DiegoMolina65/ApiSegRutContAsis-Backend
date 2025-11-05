@@ -8,8 +8,8 @@ namespace SegRutContAsis.Business.DTO.Response.Rol
 {
     public class RolResponseDTO
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; }
-        public string Descripcion { get; set; } 
+        public int rolId { get; set; }
+        public string rolNombre { get; set; }
+        public string rolDescripcion { get; set; } 
     }
 }

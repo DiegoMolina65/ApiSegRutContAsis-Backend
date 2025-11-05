@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SegRutContAsis.Business.DTO.Request.AsignacionClienteVendedor;
-using SegRutContAsis.Business.DTO.Response.AsignacionClienteVendedor;
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
 using System;
 using System.Collections.Generic;

@@ -8,12 +8,12 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Ruta
     {
-        public int Id { get; set; }
+        public int rutId { get; set; }
 
-        public string Nombre { get; set; } = "";
-        public string? Comentario { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        public bool EstadoDel { get; set; } = true;
+        public string rutNombre { get; set; } = "";
+        public string? rutComentario { get; set; }
+        public DateTime rutFechaCreacion { get; set; } = DateTime.Now;
+        public bool rutEstadoDel { get; set; } = true;
 
         // Relaciones
         public int VendedorId { get; set; }

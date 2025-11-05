@@ -8,6 +8,7 @@ using SegRutContAsis.Business.Interfaces.Authentication;
 using SegRutContAsis.Business.Interfaces.Cliente;
 using SegRutContAsis.Business.Interfaces.DireccionCliente;
 using SegRutContAsis.Business.Interfaces.Evidencia;
+using SegRutContAsis.Business.Interfaces.MarcarLlegadaVisita;
 using SegRutContAsis.Business.Interfaces.Rol;
 using SegRutContAsis.Business.Interfaces.Ruta;
 using SegRutContAsis.Business.Interfaces.SeguimientoVendedor;
@@ -57,6 +58,7 @@ builder.Services.AddScoped<IEvidenciaService, EvidenciaService>();
 builder.Services.AddScoped<ISeguimientoVendedorService, SeguimientoVendedorService>();
 builder.Services.AddScoped<IDireccionClienteService, DireccionClienteService>();
 builder.Services.AddScoped<IAsignacionClienteVendedorService, AsignacionClienteVendedorService>();
+builder.Services.AddScoped<IMarcarLlegadaVisitaService,  MarcarLlegadaVisitaService>();
 
 // Configuración de JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

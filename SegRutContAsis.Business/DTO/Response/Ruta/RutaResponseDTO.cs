@@ -8,10 +8,15 @@ namespace SegRutContAsis.Business.DTO.Response.Ruta
 {
     public class RutaResponseDTO
     {
-        public int Id { get; set; }
-        public int VenId { get; set; }
-        public int? SupId { get; set; } = 0;
-        public string Nombre { get; set; } = "";
-        public string? Comentario { get; set; } = null!;
+        public int rutId { get; set; }
+        public int venId { get; set; }
+        public int? supId { get; set; } = 0;
+        public string rutNombre { get; set; } = "";
+        public string? rutComentario { get; set; } = null!;
+
+        // Datos adicionales
+        public string? NombreVendedor { get; set; }
     }
 }
+
+

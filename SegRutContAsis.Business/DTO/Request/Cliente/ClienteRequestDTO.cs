@@ -8,10 +8,10 @@ namespace SegRutContAsis.Business.DTO.Request.Cliente
 {
     public class ClienteRequestDTO
     {
-        public string NombreCompleto { get; set; } = null!;
-        public string CarnetIdentidad { get; set; } = null!;
-        public string NitCliente { get; set; } = null!;
-        public string? TipoCliente { get; set; }
-        public string Telefono { get; set; } = null!;
+        public string clNombreCompleto { get; set; } = null!;
+        public string clCarnetIdentidad { get; set; } = null!;
+        public string clNitCliente { get; set; } = null!;
+        public string? clTipoCliente { get; set; }
+        public string clTelefono { get; set; } = null!;
     }
 }

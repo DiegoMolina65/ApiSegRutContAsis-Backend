@@ -8,11 +8,11 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class Evidencia
     {
-        public int Id { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public int eviId { get; set; }
+        public DateTime eviFechaCreacion { get; set; } = DateTime.Now;
         public int visId { get; set; }
-        public string? Tipo { get; set; } = "";
-        public string? Observaciones { get; set; } = "";
+        public string? eviTipo { get; set; } = "";
+        public string? eviObservaciones { get; set; } = "";
 
         // Relaciones
         public Visita Visita { get; set; } = null!;

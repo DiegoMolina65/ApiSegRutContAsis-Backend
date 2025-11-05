@@ -19,6 +19,7 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
+        // Crear Seguimiento vendedor
         public async Task<SeguimientoVendedorResponseDTO> CrearSeguimientoVendedor(SeguimientoVendedorRequestDTO dto)
         {
             var vendedor = await _context.Vendedor.FindAsync(dto.venId);
@@ -28,9 +29,9 @@ namespace SegRutContAsis.Business.Services
             var nuevo = new SeguimientoVendedor
             {
                 venId = dto.venId,
-                Latitud = dto.Latitud,
-                Longitud = dto.Longitud,
-                FechaCreacion = DateTime.UtcNow
+                segLatitud = dto.segLatitud,
+                segLongitud = dto.segLongitud,
+                segFechaCreacion = DateTime.UtcNow
             };
 
             _context.SeguimientoVendedor.Add(nuevo);
@@ -38,44 +39,46 @@ namespace SegRutContAsis.Business.Services
 
             return new SeguimientoVendedorResponseDTO
             {
-                segId = nuevo.Id,
+                segId = nuevo.segId,
                 venId = nuevo.venId,
-                FechaCreacion = nuevo.FechaCreacion,
-                Latitud = nuevo.Latitud,
-                Longitud = nuevo.Longitud
+                segFechaCreacion = nuevo.segFechaCreacion,
+                segLatitud = nuevo.segLatitud,
+                segLongitud = nuevo.segLongitud
             };
         }
 
+        // Obtener todos Seguimiento vendedor
         public async Task<List<SeguimientoVendedorResponseDTO>> ObtenerTodosSeguimientosVendedores()
         {
             var lista = await _context.SeguimientoVendedor
-                .OrderByDescending(s => s.FechaCreacion)
+                .OrderByDescending(s => s.segFechaCreacion)
                 .ToListAsync();
 
             return lista.Select(s => new SeguimientoVendedorResponseDTO
             {
-                segId = s.Id,
+                segId = s.segId,
                 venId = s.venId,
-                FechaCreacion = s.FechaCreacion,
-                Latitud = s.Latitud,
-                Longitud = s.Longitud
+                segFechaCreacion = s.segFechaCreacion,
+                segLatitud = s.segLatitud,
+                segLongitud = s.segLongitud
             }).ToList();
         }
 
+        // Obtener seguimiento de un vendedor
         public async Task<List<SeguimientoVendedorResponseDTO>> ObtenerSeguimientosDeUnVendedor(int venId)
         {
             var lista = await _context.SeguimientoVendedor
                 .Where(s => s.venId == venId)
-                .OrderByDescending(s => s.FechaCreacion)
+                .OrderByDescending(s => s.segFechaCreacion)
                 .ToListAsync();
 
             return lista.Select(s => new SeguimientoVendedorResponseDTO
             {
-                segId = s.Id,
+                segId = s.segId,
                 venId = s.venId,
-                FechaCreacion = s.FechaCreacion,
-                Latitud = s.Latitud,
-                Longitud = s.Longitud
+                segFechaCreacion = s.segFechaCreacion,
+                segLatitud = s.segLatitud,
+                segLongitud = s.segLongitud
             }).ToList();
         }
     }

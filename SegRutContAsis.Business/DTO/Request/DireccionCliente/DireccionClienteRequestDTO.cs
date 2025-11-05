@@ -8,11 +8,11 @@ namespace SegRutContAsis.Business.DTO.Request.DireccionCliente
 {
     public class DireccionClienteRequestDTO
     {
-        public int ClId { get; set; }
-        public int? ZonId { get; set; }
-        public string? NombreSucursal { get; set; }
-        public string Direccion { get; set; } = string.Empty;
-        public decimal Latitud { get; set; }
-        public decimal Longitud { get; set; }
+        public int clId { get; set; }
+        public int? zonId { get; set; }
+        public string? dirClNombreSucursal { get; set; }
+        public string dirClDireccion { get; set; } = string.Empty;
+        public decimal dirClLatitud { get; set; }
+        public decimal dirClLongitud { get; set; }
     }
 }

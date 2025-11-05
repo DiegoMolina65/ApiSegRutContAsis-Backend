@@ -8,12 +8,12 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class AsignacionClienteVendedor
     {
-        public int Id { get; set; }
-        public int SupId { get; set; }
-        public int VenId { get; set; }
-        public int ClId { get; set; }
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
-        public bool EstadoDel { get; set; } = true;
+        public int asgId { get; set; }
+        public int supId { get; set; }
+        public int venId { get; set; }
+        public int clId { get; set; }
+        public DateTime asgFechaCreacion { get; set; } = DateTime.Now;
+        public bool asgEstadoDel { get; set; } = true;
 
         // Relaciones
         public Supervisor Supervisor { get; set; }

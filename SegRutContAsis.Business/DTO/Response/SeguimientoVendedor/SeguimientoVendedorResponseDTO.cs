@@ -10,8 +10,8 @@ namespace SegRutContAsis.Business.DTO.Response.SeguimientoVendedor
     {
         public int segId { get; set; }
         public int venId { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public decimal Latitud {  get; set; }
-        public decimal Longitud { get; set; }
+        public DateTime segFechaCreacion { get; set; }
+        public decimal segLatitud {  get; set; }
+        public decimal segLongitud { get; set; }
     }
 }

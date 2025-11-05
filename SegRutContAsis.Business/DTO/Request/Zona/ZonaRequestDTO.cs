@@ -8,7 +8,7 @@ namespace SegRutContAsis.Business.DTO.Request.Zona
 {
     public class ZonaRequestDTO
     {
-        public string Nombre { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
+        public string zonNombre { get; set; } = string.Empty;
+        public string zonDescripcion { get; set; } = string.Empty;
     }
 }

@@ -17,6 +17,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SegRutContAsis.Api", "SegRu
 		{37DB967B-2ABF-4DFA-AB92-CBAC65AF3AFE} = {37DB967B-2ABF-4DFA-AB92-CBAC65AF3AFE}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{01410A92-CC1A-4877-8D8B-C1ADF491D156}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11463B98-CD78-44E4-B711-FF0B62BE03F7} = {11463B98-CD78-44E4-B711-FF0B62BE03F7}
+		{1EAE09F4-70B2-4B21-88FF-046D1FEECD42} = {1EAE09F4-70B2-4B21-88FF-046D1FEECD42}
+		{37DB967B-2ABF-4DFA-AB92-CBAC65AF3AFE} = {37DB967B-2ABF-4DFA-AB92-CBAC65AF3AFE}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +46,10 @@ Global
 		{5552F8D4-B8B2-40FB-A0BD-17B2DD298FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5552F8D4-B8B2-40FB-A0BD-17B2DD298FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5552F8D4-B8B2-40FB-A0BD-17B2DD298FC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01410A92-CC1A-4877-8D8B-C1ADF491D156}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01410A92-CC1A-4877-8D8B-C1ADF491D156}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01410A92-CC1A-4877-8D8B-C1ADF491D156}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01410A92-CC1A-4877-8D8B-C1ADF491D156}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

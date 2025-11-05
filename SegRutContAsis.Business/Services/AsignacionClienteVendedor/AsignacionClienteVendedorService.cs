@@ -19,15 +19,16 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
+        // Crear Asignacion Cliente-Vendedor
         public async Task<AsignacionClienteVendedorResponseDTO> CrearAsignacion(AsignacionClienteVendedorRequestDTO dto)
         {
             var asignacion = new AsignacionClienteVendedor
             {
-                SupId = dto.SupId,
-                VenId = dto.VenId,
-                ClId = dto.ClId,
-                FechaCreacion = DateTime.Now,
-                EstadoDel = true
+                supId = dto.supId,
+                venId = dto.venId,
+                clId = dto.clId,
+                asgFechaCreacion = DateTime.Now,
+                asgEstadoDel = true
             };
 
             _context.AsignacionClienteVendedor.Add(asignacion);
@@ -39,33 +40,34 @@ namespace SegRutContAsis.Business.Services
                 .Include(a => a.Vendedor)
                 .ThenInclude(v => v.Usuario)
                 .Include(a => a.Cliente)
-                .FirstOrDefaultAsync(a => a.Id == asignacion.Id);
+                .FirstOrDefaultAsync(a => a.asgId == asignacion.asgId);
 
             return new AsignacionClienteVendedorResponseDTO
             {
-                Id = result.Id,
-                SupId = result.SupId,
-                SupervisorNombre = result.Supervisor?.Usuario?.NombreCompleto,
-                VenId = result.VenId,
-                VendedorNombre = result.Vendedor?.Usuario?.NombreCompleto,
-                ClId = result.ClId,
-                ClienteNombre = result.Cliente?.NombreCompleto,
-                FechaCreacion = result.FechaCreacion,
-                EstadoDel = result.EstadoDel
+                asgId = result.asgId,
+                supId = result.supId,
+                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
+                venId = result.venId,
+                VendedorNombre = result.Vendedor?.Usuario?.usrNombreCompleto!,
+                clId = result.clId,
+                ClienteNombre = result.Cliente?.clNombreCompleto!,
+                asgFechaCreacion = result.asgFechaCreacion,
+                asgEstadoDel = result.asgEstadoDel
             };
         }
 
+        // Actualizar Asignacion Cliente-Vendedor
         public async Task<AsignacionClienteVendedorResponseDTO> ActualizarAsignacion(int id, AsignacionClienteVendedorRequestDTO dto)
         {
             var asignacion = await _context.AsignacionClienteVendedor
-                .FirstOrDefaultAsync(a => a.Id == id && a.EstadoDel);
+                .FirstOrDefaultAsync(a => a.asgId == id && a.asgEstadoDel);
 
             if (asignacion == null)
                 return null;
 
-            asignacion.SupId = dto.SupId;
-            asignacion.VenId = dto.VenId;
-            asignacion.ClId = dto.ClId;
+            asignacion.supId = dto.supId;
+            asignacion.venId = dto.venId;
+            asignacion.clId = dto.clId;
 
             _context.AsignacionClienteVendedor.Update(asignacion);
             await _context.SaveChangesAsync();
@@ -76,37 +78,39 @@ namespace SegRutContAsis.Business.Services
                 .Include(a => a.Vendedor)
                 .ThenInclude(v => v.Usuario)
                 .Include(a => a.Cliente)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .FirstOrDefaultAsync(a => a.asgId == id);
 
             return new AsignacionClienteVendedorResponseDTO
             {
-                Id = result.Id,
-                SupId = result.SupId,
-                SupervisorNombre = result.Supervisor?.Usuario?.NombreCompleto,
-                VenId = result.VenId,
-                VendedorNombre = result.Vendedor?.Usuario?.NombreCompleto,
-                ClId = result.ClId,
-                ClienteNombre = result.Cliente?.NombreCompleto,
-                FechaCreacion = result.FechaCreacion,
-                EstadoDel = result.EstadoDel
+                asgId = result.asgId,
+                supId = result.supId,
+                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
+                venId = result.venId,
+                VendedorNombre = result.Vendedor?.Usuario?.usrNombreCompleto!,
+                clId = result.clId,
+                ClienteNombre = result.Cliente?.clNombreCompleto!,
+                asgFechaCreacion = result.asgFechaCreacion,
+                asgEstadoDel = result.asgEstadoDel
             };
         }
 
+        // Desactivar Asignacion Cliente-Vendedor
         public async Task<bool> DesactivarAsignacion(int id)
         {
             var asignacion = await _context.AsignacionClienteVendedor
-                .FirstOrDefaultAsync(a => a.Id == id && a.EstadoDel);
+                .FirstOrDefaultAsync(a => a.asgId == id && a.asgEstadoDel);
 
             if (asignacion == null)
                 return false;
 
-            asignacion.EstadoDel = false;
+            asignacion.asgEstadoDel = false;
             _context.AsignacionClienteVendedor.Update(asignacion);
             await _context.SaveChangesAsync();
 
             return true;
         }
 
+        // Obtener por ID Asignacion Cliente-Vendedor
         public async Task<AsignacionClienteVendedorResponseDTO> ObtenerAsignacionPorId(int id)
         {
             var result = await _context.AsignacionClienteVendedor
@@ -115,46 +119,48 @@ namespace SegRutContAsis.Business.Services
                 .Include(a => a.Vendedor)
                 .ThenInclude(v => v.Usuario)
                 .Include(a => a.Cliente)
-                .FirstOrDefaultAsync(a => a.Id == id && a.EstadoDel);
+                .FirstOrDefaultAsync(a => a.asgId == id && a.asgEstadoDel);
 
             if (result == null) return null;
 
             return new AsignacionClienteVendedorResponseDTO
             {
-                Id = result.Id,
-                SupId = result.SupId,
-                SupervisorNombre = result.Supervisor?.Usuario?.NombreCompleto,
-                VenId = result.VenId,
-                VendedorNombre = result.Vendedor?.Usuario?.NombreCompleto,
-                ClId = result.ClId,
-                ClienteNombre = result.Cliente?.NombreCompleto,
-                FechaCreacion = result.FechaCreacion,
-                EstadoDel = result.EstadoDel
+                asgId = result.asgId,
+                supId = result.supId,
+                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
+                venId = result.venId,
+                VendedorNombre = result.Vendedor?.Usuario?.usrNombreCompleto!,
+                clId = result.clId,
+                ClienteNombre = result.Cliente?.clNombreCompleto!,
+                asgFechaCreacion = result.asgFechaCreacion,
+                asgEstadoDel = result.asgEstadoDel
             };
         }
 
+        // Obtener Asignaciones por vendedor Cliente-Vendedor
         public async Task<List<AsignacionClienteVendedorResponseDTO>> ObtenerAsignacionesPorVendedor(int venId)
         {
             var asignaciones = await _context.AsignacionClienteVendedor
                 .Include(a => a.Supervisor)
                 .ThenInclude(s => s.Usuario)
                 .Include(a => a.Cliente)
-                .Where(a => a.VenId == venId && a.EstadoDel)
+                .Where(a => a.venId == venId && a.asgEstadoDel)
                 .ToListAsync();
 
             return asignaciones.Select(result => new AsignacionClienteVendedorResponseDTO
             {
-                Id = result.Id,
-                SupId = result.SupId,
-                SupervisorNombre = result.Supervisor?.Usuario?.NombreCompleto,
-                VenId = result.VenId,
-                ClId = result.ClId,
-                ClienteNombre = result.Cliente?.NombreCompleto,
-                FechaCreacion = result.FechaCreacion,
-                EstadoDel = result.EstadoDel
+                asgId = result.asgId,
+                supId = result.supId,
+                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
+                venId = result.venId,
+                clId = result.clId,
+                ClienteNombre = result.Cliente?.clNombreCompleto!,
+                asgFechaCreacion = result.asgFechaCreacion,
+                asgEstadoDel = result.asgEstadoDel
             }).ToList();
         }
 
+        // Obtener todas Asignacion Cliente-Vendedor
         public async Task<List<AsignacionClienteVendedorResponseDTO>> ObtenerTodasAsignaciones()
         {
             var asignaciones = await _context.AsignacionClienteVendedor
@@ -163,20 +169,20 @@ namespace SegRutContAsis.Business.Services
                 .Include(a => a.Vendedor)
                 .ThenInclude(v => v.Usuario)
                 .Include(a => a.Cliente)
-                .Where(a => a.EstadoDel)
+                .Where(a => a.asgEstadoDel)
                 .ToListAsync();
 
             return asignaciones.Select(result => new AsignacionClienteVendedorResponseDTO
             {
-                Id = result.Id,
-                SupId = result.SupId,
-                SupervisorNombre = result.Supervisor?.Usuario?.NombreCompleto,
-                VenId = result.VenId,
-                VendedorNombre = result.Vendedor?.Usuario?.NombreCompleto,
-                ClId = result.ClId,
-                ClienteNombre = result.Cliente?.NombreCompleto,
-                FechaCreacion = result.FechaCreacion,
-                EstadoDel = result.EstadoDel
+                asgId = result.asgId,
+                supId = result.supId,
+                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
+                venId = result.venId,
+                VendedorNombre = result.Vendedor?.Usuario?.usrNombreCompleto!,
+                clId = result.clId,
+                ClienteNombre = result.Cliente?.clNombreCompleto!,
+                asgFechaCreacion = result.asgFechaCreacion,
+                asgEstadoDel = result.asgEstadoDel
             }).ToList();
         }
     }

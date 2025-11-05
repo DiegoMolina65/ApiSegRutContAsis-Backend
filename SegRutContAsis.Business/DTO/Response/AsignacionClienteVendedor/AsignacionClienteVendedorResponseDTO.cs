@@ -8,14 +8,14 @@ namespace SegRutContAsis.Business.DTO.Response.AsignacionClienteVendedor
 {
     public class AsignacionClienteVendedorResponseDTO
     {
-        public int Id { get; set; }
-        public int SupId { get; set; }
+        public int asgId { get; set; }
+        public int supId { get; set; }
         public string SupervisorNombre { get; set; }
-        public int VenId { get; set; }
+        public int venId { get; set; }
         public string VendedorNombre { get; set; }
-        public int ClId { get; set; }
+        public int clId { get; set; }
         public string ClienteNombre { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public bool EstadoDel { get; set; }
+        public DateTime asgFechaCreacion { get; set; }
+        public bool asgEstadoDel { get; set; }
     }
 }

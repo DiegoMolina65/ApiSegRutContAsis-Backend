@@ -19,63 +19,57 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
-        // =========================
         // Obtener todos los clientes
-        // =========================
         public async Task<List<ClienteResponseDTO>> ObtenerClientes()
         {
             var clientes = await _context.Cliente
-                .Where(c => c.EstadoDel)
+                .Where(c => c.clEstadoDel)
                 .ToListAsync();
 
             return clientes.Select(c => new ClienteResponseDTO
             {
-                Id = c.Id,
-                NombreCompleto = c.NombreCompleto,
-                CarnetIdentidad = c.CarnetIdentidad,
-                NitCliente = c.NitCliente,
-                TipoCliente = c.TipoCliente,
-                Telefono = c.Telefono,
+                clId = c.clId,
+                clNombreCompleto = c.clNombreCompleto,
+                clCarnetIdentidad = c.clCarnetIdentidad,
+                clNitCliente = c.clNitCliente,
+                clTipoCliente = c.clTipoCliente,
+                clTelefono = c.clTelefono,
             }).ToList();
         }
 
-        // =========================
         // Obtener cliente por ID
-        // =========================
         public async Task<ClienteResponseDTO?> ObtenerClientePorId(int id)
         {
             var cliente = await _context.Cliente
-                .FirstOrDefaultAsync(c => c.Id == id && c.EstadoDel);
+                .FirstOrDefaultAsync(c => c.clId == id && c.clEstadoDel);
 
             if (cliente == null) return null;
 
             return new ClienteResponseDTO
             {
-                Id = cliente.Id,
-                NombreCompleto = cliente.NombreCompleto,
-                CarnetIdentidad = cliente.CarnetIdentidad,
-                NitCliente = cliente.NitCliente,
-                TipoCliente = cliente.TipoCliente,
-                Telefono = cliente.Telefono,
+                clId = cliente.clId,
+                clNombreCompleto = cliente.clNombreCompleto,
+                clCarnetIdentidad = cliente.clCarnetIdentidad,
+                clNitCliente = cliente.clNitCliente,
+                clTipoCliente = cliente.clTipoCliente,
+                clTelefono = cliente.clTelefono,
             };
         }
 
-        // =========================
         // Crear cliente
-        // =========================
         public async Task<ClienteResponseDTO> CrearCliente(ClienteRequestDTO request)
         {
-            bool existe = await _context.Cliente.AnyAsync(c => c.CarnetIdentidad == request.CarnetIdentidad);
+            bool existe = await _context.Cliente.AnyAsync(c => c.clCarnetIdentidad == request.clCarnetIdentidad);
             if (existe)
                 throw new Exception("Ya existe un cliente con ese carnet de identidad.");
 
             var cliente = new Cliente
             {
-                NombreCompleto = request.NombreCompleto,
-                CarnetIdentidad = request.CarnetIdentidad,
-                NitCliente = request.NitCliente,
-                TipoCliente = request.TipoCliente,
-                Telefono = request.Telefono,
+                clNombreCompleto = request.clNombreCompleto,
+                clCarnetIdentidad = request.clCarnetIdentidad,
+                clNitCliente = request.clNitCliente,
+                clTipoCliente = request.clTipoCliente,
+                clTelefono = request.clTelefono,
             };
 
             _context.Cliente.Add(cliente);
@@ -84,52 +78,48 @@ namespace SegRutContAsis.Business.Services
 
             return new ClienteResponseDTO
             {
-                Id = cliente.Id,
-                NombreCompleto = cliente.NombreCompleto,
-                CarnetIdentidad = cliente.CarnetIdentidad,
-                NitCliente = cliente.NitCliente,
-                TipoCliente = cliente.TipoCliente,
-                Telefono = cliente.Telefono,
+                clId = cliente.clId,
+                clNombreCompleto = cliente.clNombreCompleto,
+                clCarnetIdentidad = cliente.clCarnetIdentidad,
+                clNitCliente = cliente.clNitCliente,
+                clTipoCliente = cliente.clTipoCliente,
+                clTelefono = cliente.clTelefono,
             };
         }
 
-        // =========================
         // Actualizar cliente
-        // =========================
         public async Task<ClienteResponseDTO?> ActualizarCliente(int id, ClienteRequestDTO request)
         {
             var cliente = await _context.Cliente.FindAsync(id);
-            if (cliente == null || !cliente.EstadoDel) return null;
+            if (cliente == null || !cliente.clEstadoDel) return null;
 
-            cliente.NombreCompleto = request.NombreCompleto;
-            cliente.TipoCliente = request.TipoCliente;
-            cliente.NitCliente = request.NitCliente;
-            cliente.CarnetIdentidad = request.CarnetIdentidad;
-            cliente.Telefono = request.Telefono;
+            cliente.clNombreCompleto = request.clNombreCompleto;
+            cliente.clTipoCliente = request.clTipoCliente;
+            cliente.clNitCliente = request.clNitCliente;
+            cliente.clCarnetIdentidad = request.clCarnetIdentidad;
+            cliente.clTelefono = request.clTelefono;
 
             await _context.SaveChangesAsync();
 
             return new ClienteResponseDTO
             {
-                Id = cliente.Id,
-                NombreCompleto = cliente.NombreCompleto,
-                CarnetIdentidad = cliente.CarnetIdentidad,
-                NitCliente = cliente.NitCliente,
-                TipoCliente = cliente.TipoCliente,
-                Telefono = cliente.Telefono,
+                clId = cliente.clId,
+                clNombreCompleto = cliente.clNombreCompleto,
+                clCarnetIdentidad = cliente.clCarnetIdentidad,
+                clNitCliente = cliente.clNitCliente,
+                clTipoCliente = cliente.clTipoCliente,
+                clTelefono = cliente.clTelefono,
             };
         }
 
-        // =========================
         // Deshabilitar cliente
-        // =========================
         public async Task<bool> DeshabilitarCliente(int id)
         {
             var cliente = await _context.Cliente.FindAsync(id);
-            if (cliente == null || !cliente.EstadoDel)
+            if (cliente == null || !cliente.clEstadoDel)
                 return false;
 
-            cliente.EstadoDel = false;
+            cliente.clEstadoDel = false;
             _context.Cliente.Update(cliente);
             await _context.SaveChangesAsync();
             return true;

@@ -18,20 +18,18 @@ namespace SegRutContAsis.Business.Services.Rol
             _context = context;
         }
 
-        // =========================
         // Obtener todos los roles
-        // =========================
         public async Task<List<RolResponseDTO>> ObtenerRoles() 
         {
             var roles = await _context.Rol
-                .Where(r => r.EstadoDel)
+                .Where(r => r.rolEstadoDel)
                 .ToListAsync();
 
             return roles.Select(r => new RolResponseDTO
             {
-                Id = r.Id,
-                Nombre = r.Nombre,
-                Descripcion = r.Descripcion,
+                rolId = r.rolId,
+                rolNombre = r.rolNombre,
+                rolDescripcion = r.rolDescripcion,
             }).ToList();
         }
     }

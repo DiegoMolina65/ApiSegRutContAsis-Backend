@@ -12,8 +12,8 @@ namespace SegRutContAsis.Api.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _usuarioService;
-        public UsuarioController(IUsuarioService usuarioService) 
-        { 
+        public UsuarioController(IUsuarioService usuarioService)
+        {
             _usuarioService = usuarioService;
         }
 
@@ -46,7 +46,7 @@ namespace SegRutContAsis.Api.Controllers
             try
             {
                 var usuario = await _usuarioService.RegistrarUsuario(dto);
-                return Ok(new { usuario.Id, usuario.NombreCompleto, usuario.UsuarioLog });
+                return Ok(new { usuario.usrId, usuario.usrNombreCompleto, usuario.usrUsuarioLog });
             }
             catch (Exception ex)
             {
@@ -90,9 +90,9 @@ namespace SegRutContAsis.Api.Controllers
                 var usuarioActualizado = await _usuarioService.ActualizarUsuario(id, dto);
                 return Ok(new
                 {
-                    usuarioActualizado.Id,
-                    usuarioActualizado.NombreCompleto,
-                    usuarioActualizado.UsuarioLog
+                    usuarioActualizado.usrId,
+                    usuarioActualizado.usrNombreCompleto,
+                    usuarioActualizado.usrUsuarioLog
                 });
             }
             catch (Exception ex)
@@ -111,6 +111,52 @@ namespace SegRutContAsis.Api.Controllers
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
                 return Ok(new { mensaje = "Usuario deshabilitado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpGet("obtenerVendedores")]
+        public async Task<IActionResult> ObtenerVendedores()
+        {
+            try
+            {
+                var vendedores = await _usuarioService.ObtenerVendedores();
+                var result = vendedores.Select(v => new
+                {
+                    v.usrId,
+                    v.usrNombreCompleto,
+                    v.usrCorreo,
+                    v.Roles,
+                    IdVendedor = v.VendedorId
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        [HttpGet("obtenerSupervisores")]
+        public async Task<IActionResult> ObtenerSupervisores()
+        {
+            try
+            {
+                var supervisores = await _usuarioService.ObtenerSupervisores();
+                var result = supervisores.Select(s => new
+                {
+                    s.usrId,
+                    s.usrNombreCompleto,
+                    s.usrCorreo,
+                    s.Roles,
+                    IdSupervisor = s.SupervisorId 
+                }).ToList();
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
