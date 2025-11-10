@@ -6,7 +6,6 @@ using SegRutContAsis.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SegRutContAsis.Business.Services
@@ -20,139 +19,248 @@ namespace SegRutContAsis.Business.Services
             _context = context;
         }
 
-        // Crear Ruta
+        // Crear ruta
         public async Task<RutaResponseDTO> CrearRuta(RutaRequestDTO dto)
         {
-            var ruta = new Ruta
+            try
             {
-                VendedorId = dto.venId,
-                SupervisorId = dto.supId,
-                rutNombre = dto.rutNombre,
-                rutComentario = dto.rutComentario,
-                rutEstadoDel = true
-            };
+                if (dto == null)
+                    throw new ArgumentNullException(nameof(dto), "Los datos de la ruta no pueden ser nulos.");
 
-            _context.Ruta.Add(ruta);
-            await _context.SaveChangesAsync();
+                if (dto.rutFechaEjecucion == null)
+                    throw new Exception("Debe especificar la fecha de ejecución de la ruta.");
 
-            return new RutaResponseDTO
+                // Validar duplicado antes de insertar
+                bool existeRuta = await _context.Ruta.AnyAsync(r =>
+                    r.VendedorId == dto.venId &&
+                    r.rutFechaEjecucion == dto.rutFechaEjecucion);
+
+                if (existeRuta)
+                    throw new Exception("Ya existe una ruta registrada para este vendedor en la misma fecha de ejecución.");
+
+                var ruta = new Ruta
+                {
+                    VendedorId = dto.venId,
+                    SupervisorId = dto.supId,
+                    rutNombre = dto.rutNombre,
+                    rutComentario = dto.rutComentario,
+                    rutFechaEjecucion = dto.rutFechaEjecucion,
+                    rutEstadoDel = true
+                };
+
+                _context.Ruta.Add(ruta);
+                await _context.SaveChangesAsync();
+
+                return new RutaResponseDTO
+                {
+                    rutId = ruta.rutId,
+                    venId = ruta.VendedorId,
+                    supId = ruta.SupervisorId,
+                    rutNombre = ruta.rutNombre,
+                    rutComentario = ruta.rutComentario,
+                    rutFechaEjecucion = ruta.rutFechaEjecucion
+                };
+            }
+            catch (DbUpdateException dbEx)
             {
-                rutId = ruta.rutId,
-                venId = ruta.VendedorId,
-                supId = ruta.SupervisorId,
-                rutNombre = ruta.rutNombre,
-                rutComentario = ruta.rutComentario
-            };
+                if (dbEx.InnerException != null && dbEx.InnerException.Message.Contains("UQ_Ruta_Ven_Fecha"))
+                    throw new Exception("Ya existe una ruta con el mismo vendedor y fecha de ejecución.");
+
+                throw new Exception($"Error al guardar la ruta: {dbEx.InnerException?.Message ?? dbEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al crear la ruta: {ex.Message}");
+            }
         }
 
-        // Obtener Rutas
+        // Obtener rutas
         public async Task<List<RutaResponseDTO>> ObtenerRutas()
         {
-            return await _context.Ruta
-                .Where(r => r.rutEstadoDel)
-                .Include(r => r.Vendedor)
-                .Select(r => new RutaResponseDTO
-                {
-                    rutId = r.rutId,
-                    venId = r.VendedorId,
-                    supId = r.SupervisorId,
-                    rutNombre = r.rutNombre,
-                    rutComentario = r.rutComentario,
-                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
-                })
-                .ToListAsync();
+            try
+            {
+                var rutas = await _context.Ruta
+                    .Where(r => r.rutEstadoDel)
+                    .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Select(r => new RutaResponseDTO
+                    {
+                        rutId = r.rutId,
+                        venId = r.VendedorId,
+                        supId = r.SupervisorId,
+                        rutNombre = r.rutNombre,
+                        rutComentario = r.rutComentario,
+                        rutFechaEjecucion = r.rutFechaEjecucion,
+                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                    })
+                    .ToListAsync();
+
+                if (!rutas.Any())
+                    throw new Exception("No se encontraron rutas activas registradas.");
+
+                return rutas;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener las rutas: {ex.Message}");
+            }
         }
 
-        // Obtener Ruta por Id
+        // Obtener rutas por ID
         public async Task<RutaResponseDTO> ObtenerRutaId(int id)
         {
-            var rutaDTO = await _context.Ruta
-                .Where(r => r.rutEstadoDel && r.rutId == id)
-                .Select(r => new RutaResponseDTO
-                {
-                    rutId = r.rutId,
-                    venId = r.VendedorId,
-                    supId = r.SupervisorId,
-                    rutNombre = r.rutNombre,
-                    rutComentario = r.rutComentario,
-                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
-                })
-                .FirstOrDefaultAsync();
+            try
+            {
+                var ruta = await _context.Ruta
+                    .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Where(r => r.rutEstadoDel && r.rutId == id)
+                    .Select(r => new RutaResponseDTO
+                    {
+                        rutId = r.rutId,
+                        venId = r.VendedorId,
+                        supId = r.SupervisorId,
+                        rutNombre = r.rutNombre,
+                        rutComentario = r.rutComentario,
+                        rutFechaEjecucion = r.rutFechaEjecucion,
+                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                    })
+                    .FirstOrDefaultAsync();
 
-            if (rutaDTO == null)
-                throw new Exception("Ruta no encontrada");
+                if (ruta == null)
+                    throw new Exception("Ruta no encontrada o está deshabilitada.");
 
-            return rutaDTO;
+                return ruta;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener la ruta con ID {id}: {ex.Message}");
+            }
         }
 
-        // Actualizar Ruta
+        // Actualizar ruta
         public async Task<RutaResponseDTO> ActualizarRuta(int id, RutaRequestDTO dto)
         {
-            var ruta = await _context.Ruta.FindAsync(id);
-            if (ruta == null) throw new Exception("Ruta no encontrada");
-
-            ruta.VendedorId = dto.venId;
-            ruta.SupervisorId = dto.supId;
-            ruta.rutNombre = dto.rutNombre;
-            ruta.rutComentario = dto.rutComentario;
-
-            await _context.SaveChangesAsync();
-
-            return new RutaResponseDTO
+            try
             {
-                rutId = ruta.rutId,
-                venId = ruta.VendedorId,
-                supId = ruta.SupervisorId,
-                rutNombre = ruta.rutNombre,
-                rutComentario = ruta.rutComentario
-            };
+                var ruta = await _context.Ruta.FindAsync(id);
+                if (ruta == null || !ruta.rutEstadoDel)
+                    throw new Exception("Ruta no encontrada o deshabilitada.");
+
+                if (dto.rutFechaEjecucion == null)
+                    throw new Exception("Debe especificar la nueva fecha de ejecución.");
+
+                ruta.VendedorId = dto.venId;
+                ruta.SupervisorId = dto.supId;
+                ruta.rutNombre = dto.rutNombre;
+                ruta.rutComentario = dto.rutComentario;
+                ruta.rutFechaEjecucion = dto.rutFechaEjecucion;
+
+                await _context.SaveChangesAsync();
+
+                return new RutaResponseDTO
+                {
+                    rutId = ruta.rutId,
+                    venId = ruta.VendedorId,
+                    supId = ruta.SupervisorId,
+                    rutNombre = ruta.rutNombre,
+                    rutComentario = ruta.rutComentario,
+                    rutFechaEjecucion = ruta.rutFechaEjecucion
+                };
+            }
+            catch (DbUpdateException dbEx)
+            {
+                if (dbEx.InnerException != null && dbEx.InnerException.Message.Contains("UQ_Ruta_Ven_Fecha"))
+                    throw new Exception("No se puede actualizar: existe otra ruta con el mismo vendedor y fecha.");
+
+                throw new Exception($"Error al actualizar la ruta: {dbEx.InnerException?.Message ?? dbEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al actualizar la ruta con ID {id}: {ex.Message}");
+            }
         }
 
         // Deshabilitar Ruta
         public async Task<bool> DeshabilitarRuta(int id)
         {
-            var ruta = await _context.Ruta.FindAsync(id);
-            if (ruta == null) throw new Exception("Ruta no encontrada");
+            try
+            {
+                var ruta = await _context.Ruta.FindAsync(id);
+                if (ruta == null)
+                    throw new Exception("Ruta no encontrada.");
 
-            ruta.rutEstadoDel = false;
-            await _context.SaveChangesAsync();
-            return true;
+                if (!ruta.rutEstadoDel)
+                    throw new Exception("La ruta ya está deshabilitada.");
+
+                ruta.rutEstadoDel = false;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al deshabilitar la ruta con ID {id}: {ex.Message}");
+            }
         }
 
-        // Obtener Rutas por Vendedor
+        // Rutas por vendedor
         public async Task<List<RutaResponseDTO>> ObtenerRutasPorVendedor(int venId)
         {
-            return await _context.Ruta
-                .Where(r => r.rutEstadoDel && r.VendedorId == venId)
+            try
+            {
+                var rutas = await _context.Ruta
+                    .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Where(r => r.rutEstadoDel && r.VendedorId == venId)
+                    .Select(r => new RutaResponseDTO
+                    {
+                        rutId = r.rutId,
+                        venId = r.VendedorId,
+                        supId = r.SupervisorId,
+                        rutNombre = r.rutNombre,
+                        rutComentario = r.rutComentario,
+                        rutFechaEjecucion = r.rutFechaEjecucion,
+                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                    })
+                    .ToListAsync();
 
-                .Select(r => new RutaResponseDTO
-                {
-                    rutId = r.rutId,
-                    venId = r.VendedorId,
-                    supId = r.SupervisorId,
-                    rutNombre = r.rutNombre,
-                    rutComentario = r.rutComentario,
-                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
-                })
-                .ToListAsync();
+                if (!rutas.Any())
+                    throw new Exception($"No se encontraron rutas activas para el vendedor con ID {venId}.");
+
+                return rutas;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener rutas del vendedor {venId}: {ex.Message}");
+            }
         }
 
-        // Obtener Rutas por Supervisor
+        // Rutas por supervisor
         public async Task<List<RutaResponseDTO>> ObtenerRutasPorSupervisor(int supId)
         {
-            return await _context.Ruta
-                .Where(r => r.rutEstadoDel && r.SupervisorId == supId)
+            try
+            {
+                var rutas = await _context.Ruta
+                    .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Where(r => r.rutEstadoDel && r.SupervisorId == supId)
+                    .Select(r => new RutaResponseDTO
+                    {
+                        rutId = r.rutId,
+                        venId = r.VendedorId,
+                        supId = r.SupervisorId,
+                        rutNombre = r.rutNombre,
+                        rutComentario = r.rutComentario,
+                        rutFechaEjecucion = r.rutFechaEjecucion,
+                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                    })
+                    .ToListAsync();
 
-                .Select(r => new RutaResponseDTO
-                {
-                    rutId = r.rutId,
-                    venId = r.VendedorId,
-                    supId = r.SupervisorId,
-                    rutNombre = r.rutNombre,
-                    rutComentario = r.rutComentario,
-                    NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
-                })
-                .ToListAsync();
+                if (!rutas.Any())
+                    throw new Exception($"No se encontraron rutas activas para el supervisor con ID {supId}.");
+
+                return rutas;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener rutas del supervisor {supId}: {ex.Message}");
+            }
         }
     }
 }

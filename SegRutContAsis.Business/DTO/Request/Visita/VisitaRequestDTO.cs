@@ -10,7 +10,6 @@ namespace SegRutContAsis.Business.DTO.Request.Visita
     {
         public int rutId { get; set; }
         public int dirClId { get; set; }
-        public DateTime? visFecha { get; set; }
         public string? visComentario { get; set; }
     }
 

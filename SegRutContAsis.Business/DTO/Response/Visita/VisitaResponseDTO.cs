@@ -12,8 +12,6 @@ namespace SegRutContAsis.Business.DTO.Response.Visita
         public int rutId { get; set; }
         public int dirClId { get; set; }
         public DateTime visFechaCreacion { get; set; }
-        public DateTime? visFecha { get; set; }
-        public int? visSemanaDelMes { get; set; }
         public bool visEstadoDel { get; set; }
         public string? visComentario { get; set; }
 

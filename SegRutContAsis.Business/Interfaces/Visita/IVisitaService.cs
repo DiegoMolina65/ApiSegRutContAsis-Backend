@@ -18,6 +18,5 @@ namespace SegRutContAsis.Business.Interfaces.Visita
         Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId);
         Task<List<VisitaResponseDTO>> ObtenerVisitasPorDireccionCliente(int clienteId);
         Task<List<VisitaResponseDTO>> ObtenerVisitasPorVendedor(int venId);
-        Task<List<VisitaResponseDTO>> ObtenerVisitasPorSemana(int venId, int semana);
     }
 }

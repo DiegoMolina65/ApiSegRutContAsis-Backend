@@ -3,6 +3,10 @@ using SegRutContAsis.Business.DTO.Request.Visita;
 using SegRutContAsis.Business.DTO.Response.Visita;
 using SegRutContAsis.Business.Interfaces.Visita;
 using SegRutContAsis.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class VisitaService : IVisitaService
 {
@@ -18,27 +22,18 @@ public class VisitaService : IVisitaService
         var ruta = await _context.Ruta.FirstOrDefaultAsync(r => r.rutId == dto.rutId && r.rutEstadoDel);
         if (ruta == null) throw new Exception("Ruta no existe o está desactivada.");
 
-        var fecha = dto.visFecha ?? DateTime.Now;
-
-        if (fecha.Date < DateTime.Now.Date)
-            throw new Exception("No se puede registrar una visita en una fecha pasada.");
-
-        int semana = ((fecha.Day - 1) / 7) + 1;
-
         bool existeDuplicado = await _context.Visita.AnyAsync(v =>
             v.rutId == dto.rutId &&
             v.dirClId == dto.dirClId &&
-            v.visFecha == fecha &&
             v.visEstadoDel);
 
-        if (existeDuplicado) throw new Exception("Ya existe visita para ese cliente en la misma fecha y hora.");
+        if (existeDuplicado)
+            throw new Exception("Ya existe una visita registrada para este cliente en la ruta.");
 
         var visita = new Visita
         {
             rutId = dto.rutId,
             dirClId = dto.dirClId,
-            visFecha = fecha,
-            visSemanaDelMes = semana,
             visComentario = dto.visComentario
         };
 
@@ -52,24 +47,20 @@ public class VisitaService : IVisitaService
     public async Task<VisitaResponseDTO> ActualizarVisita(int id, VisitaRequestDTO dto)
     {
         var visita = await _context.Visita.FindAsync(id);
-        if (visita == null || !visita.visEstadoDel) throw new Exception("Visita no encontrada");
-
-        var fecha = dto.visFecha ?? DateTime.Now;
-        int semana = ((fecha.Day - 1) / 7) + 1;
+        if (visita == null || !visita.visEstadoDel)
+            throw new Exception("Visita no encontrada");
 
         bool existeDuplicado = await _context.Visita.AnyAsync(v =>
             v.visId != id &&
             v.rutId == dto.rutId &&
             v.dirClId == dto.dirClId &&
-            v.visFecha == fecha &&
             v.visEstadoDel);
 
-        if (existeDuplicado) throw new Exception("Ya existe otra visita para este cliente en la misma fecha y hora.");
+        if (existeDuplicado)
+            throw new Exception("Ya existe otra visita registrada para este cliente en la misma ruta.");
 
         visita.rutId = dto.rutId;
         visita.dirClId = dto.dirClId;
-        visita.visFecha = fecha;
-        visita.visSemanaDelMes = semana;
         visita.visComentario = dto.visComentario;
 
         await _context.SaveChangesAsync();
@@ -105,8 +96,6 @@ public class VisitaService : IVisitaService
             rutId = v.rutId,
             dirClId = v.dirClId,
             visFechaCreacion = v.visFechaCreacion,
-            visFecha = v.visFecha,
-            visSemanaDelMes = v.visSemanaDelMes,
             visEstadoDel = v.visEstadoDel,
             visComentario = v.visComentario,
             NombreCliente = v.DireccionCliente.Cliente?.clNombreCompleto,
@@ -115,7 +104,7 @@ public class VisitaService : IVisitaService
         };
     }
 
-    // Obtener Todas Visita
+    // Obtener Todas las Visitas
     public async Task<List<VisitaResponseDTO>> ObtenerTodasVisitas()
     {
         var visitas = await _context.Visita
@@ -133,8 +122,6 @@ public class VisitaService : IVisitaService
             rutId = v.rutId,
             dirClId = v.dirClId,
             visFechaCreacion = v.visFechaCreacion,
-            visFecha = v.visFecha,
-            visSemanaDelMes = v.visSemanaDelMes,
             visEstadoDel = v.visEstadoDel,
             visComentario = v.visComentario,
             NombreCliente = v.DireccionCliente?.Cliente?.clNombreCompleto,
@@ -143,13 +130,11 @@ public class VisitaService : IVisitaService
             SucursalLongitud = v.DireccionCliente?.dirClLongitud,
             NombreZona = v.DireccionCliente?.Zona?.zonNombre,
             Direccion = v.DireccionCliente?.dirClDireccion,
-            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto,
-
-
+            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
         }).ToList();
     }
 
-    // Obtener
+    // Obtener visitas filtradas
     public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId) =>
         (await ObtenerTodasVisitas()).Where(v => v.rutId == rutaId).ToList();
 
@@ -159,7 +144,7 @@ public class VisitaService : IVisitaService
     public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorVendedor(int venId)
     {
         var visitas = await _context.Visita
-            .Include(v => v.Ruta)               
+            .Include(v => v.Ruta)
             .Include(v => v.DireccionCliente)
                 .ThenInclude(d => d.Cliente)
             .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel && v.Ruta.VendedorId == venId)
@@ -171,12 +156,10 @@ public class VisitaService : IVisitaService
             rutId = v.rutId,
             dirClId = v.dirClId,
             visFechaCreacion = v.visFechaCreacion,
-            visFecha = v.visFecha,
-            visSemanaDelMes = v.visSemanaDelMes,
             visEstadoDel = v.visEstadoDel,
             visComentario = v.visComentario,
-            NombreCliente = v.DireccionCliente.Cliente.clNombreCompleto,
-            NombreSucursalCliente = v.DireccionCliente.dirClNombreSucursal,
+            NombreCliente = v.DireccionCliente.Cliente?.clNombreCompleto,
+            NombreSucursalCliente = v.DireccionCliente?.dirClNombreSucursal,
             SucursalLatitud = v.DireccionCliente?.dirClLatitud,
             SucursalLongitud = v.DireccionCliente?.dirClLongitud,
             NombreZona = v.DireccionCliente?.Zona?.zonNombre,
@@ -184,30 +167,4 @@ public class VisitaService : IVisitaService
             NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
         }).ToList();
     }
-
-    public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorSemana(int venId, int semana)
-    {
-        var visitas = await _context.Visita
-            .Include(v => v.Ruta)
-            .Include(v => v.DireccionCliente)
-                .ThenInclude(d => d.Cliente)
-            .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel && v.Ruta.VendedorId == venId && v.visSemanaDelMes == semana)
-            .ToListAsync();
-
-        return visitas.Select(v => new VisitaResponseDTO
-        {
-            visId = v.visId,
-            rutId = v.rutId,
-            dirClId = v.dirClId,
-            visFechaCreacion = v.visFechaCreacion,
-            visFecha = v.visFecha,
-            visSemanaDelMes = v.visSemanaDelMes,
-            visEstadoDel = v.visEstadoDel,
-            visComentario = v.visComentario,
-            NombreCliente = v.DireccionCliente.Cliente?.clNombreCompleto,
-            NombreSucursalCliente = v.DireccionCliente?.dirClNombreSucursal,
-            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
-        }).ToList();
-    }
-
 }

@@ -188,8 +188,6 @@ public class SegRutContAsisContext : DbContext
             entity.Property(v => v.visFechaCreacion).HasColumnName("visFechaCreacion").HasColumnType("datetime").HasDefaultValueSql("getdate()");
             entity.Property(v => v.rutId).HasColumnName("rutId");
             entity.Property(v => v.dirClId).HasColumnName("dirClId");
-            entity.Property(v => v.visFecha).HasColumnName("visFecha").HasColumnType("date");
-            entity.Property(v => v.visSemanaDelMes).HasColumnName("visSemanaDelMes");
             entity.Property(v => v.visEstadoDel).HasColumnName("visEstadoDel").HasDefaultValue(true);
             entity.Property(v => v.visComentario).HasColumnName("visComentario");
 
@@ -228,17 +226,42 @@ public class SegRutContAsisContext : DbContext
         {
             entity.ToTable("Ruta");
             entity.HasKey(r => r.rutId);
-
             entity.Property(r => r.rutId).HasColumnName("rutId");
-            entity.Property(r => r.VendedorId).HasColumnName("venId");
-            entity.Property(r => r.SupervisorId).HasColumnName("supId");
-            entity.Property(r => r.rutFechaCreacion).HasColumnName("rutFechaCreacion").HasColumnType("datetime").HasDefaultValueSql("getdate()");
-            entity.Property(r => r.rutEstadoDel).HasColumnName("rutEstadoDel").HasDefaultValue(true);
-            entity.Property(r => r.rutNombre).HasColumnName("rutNombre").HasMaxLength(20).IsRequired();
-            entity.Property(r => r.rutComentario).HasColumnName("rutComentario");
-            entity.HasOne(r => r.Vendedor).WithMany(v => v.Rutas).HasForeignKey(r => r.VendedorId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(r => r.Supervisor).WithMany(s => s.Rutas).HasForeignKey(r => r.SupervisorId).OnDelete(DeleteBehavior.NoAction);
+            entity.Property(r => r.VendedorId)
+                .HasColumnName("venId")
+                .IsRequired();
+            entity.Property(r => r.SupervisorId)
+                .HasColumnName("supId");
+            entity.Property(r => r.rutFechaEjecucion)
+                .HasColumnName("rutFechaEjecucion")
+                .HasColumnType("date")
+                .IsRequired();
+            entity.Property(r => r.rutFechaCreacion)
+                .HasColumnName("rutFechaCreacion")
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("getdate()");
+            entity.Property(r => r.rutEstadoDel)
+                .HasColumnName("rutEstadoDel")
+                .HasDefaultValue(true);
+            entity.Property(r => r.rutNombre)
+                .HasColumnName("rutNombre")
+                .HasMaxLength(255)
+                .IsRequired();
+            entity.Property(r => r.rutComentario)
+                .HasColumnName("rutComentario");
+            entity.HasOne(r => r.Vendedor)
+                .WithMany(v => v.Rutas)
+                .HasForeignKey(r => r.VendedorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.Supervisor)
+                .WithMany(s => s.Rutas)
+                .HasForeignKey(r => r.SupervisorId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasIndex(r => new { r.VendedorId, r.rutFechaEjecucion })
+                  .IsUnique()
+                  .HasDatabaseName("UQ_Ruta_Ven_Fecha");
         });
+
 
         // ---------------- MarcarLlegadaVisita ----------------
         modelBuilder.Entity<MarcarLlegadaVisita>(entity =>

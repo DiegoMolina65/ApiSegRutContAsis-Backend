@@ -12,5 +12,6 @@ namespace SegRutContAsis.Business.DTO.Request.Ruta
         public int? supId { get; set; } = 0;
         public string rutNombre { get; set; } = "";
         public string? rutComentario { get; set; } = null!;
+        public DateTime rutFechaEjecucion { get; set; }
     }
 }

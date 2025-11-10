@@ -12,8 +12,6 @@ namespace SegRutContAsis.Domain.Entities
         public DateTime visFechaCreacion { get; set; } = DateTime.Now;
         public int rutId { get; set; }
         public int dirClId { get; set; }
-        public DateTime? visFecha { get; set; }
-        public int? visSemanaDelMes { get; set; }
         public bool visEstadoDel { get; set; } = true;
         public string? visComentario { get; set; }
 

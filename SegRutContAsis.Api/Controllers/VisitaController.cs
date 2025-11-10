@@ -93,12 +93,5 @@ namespace SegRutContAsis.Api.Controllers
             var visitas = await _visitaService.ObtenerVisitasPorVendedor(venId);
             return Ok(visitas);
         }
-
-        [HttpGet("obtenerVisitasPorSemana/{venId}/{semana}")]
-        public async Task<IActionResult> ObtenerVisitasPorSemana(int venId, int semana)
-        {
-            var visitas = await _visitaService.ObtenerVisitasPorSemana(venId, semana);
-            return Ok(visitas);
-        }
     }
 }
