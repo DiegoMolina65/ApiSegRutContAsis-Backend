@@ -23,6 +23,8 @@ public class SegRutContAsisContext : DbContext
     public DbSet<AsignacionClienteVendedor> AsignacionClienteVendedor { get; set; }
     public DbSet<MarcarLlegadaVisita> MarcarLlegadaVisita { get; set; }
     public DbSet<AsignacionSupervisorVendedor> AsignacionSupervisorVendedor { get; set; }
+    public DbSet<Reportes> Reportes { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -291,6 +293,101 @@ public class SegRutContAsisContext : DbContext
             entity.HasOne(a => a.Supervisor).WithMany(s => s.AsignacionesSupervisorVendedor).HasForeignKey(a => a.supId).HasConstraintName("FK_AsigSupVen_Supervisor").OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(a => a.Vendedor).WithMany(v => v.AsignacionesSupervisorVendedor).HasForeignKey(a => a.venId).HasConstraintName("FK_AsigSupVen_Vendedor").OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(a => new { a.supId, a.venId }).IsUnique().HasDatabaseName("UQ_AsigSupVen");
+        });
+
+        // ---------------- Reportes ----------------
+        modelBuilder.Entity<Reportes>(entity =>
+        {
+            entity.ToTable("ReporteActividad");
+            entity.HasKey(r => r.repId);
+
+            entity.Property(r => r.repId).HasColumnName("repId");
+            entity.Property(r => r.venId).HasColumnName("venId").IsRequired();
+            entity.Property(r => r.supId).HasColumnName("supId");
+            entity.Property(r => r.clId).HasColumnName("clId");
+            entity.Property(r => r.visId).HasColumnName("visId");
+            entity.Property(r => r.asiId).HasColumnName("asiId");
+            entity.Property(r => r.eviId).HasColumnName("eviId");
+            entity.Property(r => r.rutId).HasColumnName("rutId");
+            entity.Property(r => r.zonId).HasColumnName("zonId");
+
+            entity.Property(r => r.repFechaCreacion)
+                .HasColumnName("repFechaCreacion")
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("getdate()");
+
+            entity.Property(r => r.repFecha)
+                .HasColumnName("repFecha")
+                .HasColumnType("date")
+                .IsRequired();
+
+            entity.Property(r => r.repTipoActividad)
+                .HasColumnName("repTipoActividad")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(r => r.repDescripcion)
+                .HasColumnName("repDescripcion");
+
+            entity.Property(r => r.repLatitud)
+                .HasColumnName("repLatitud")
+                .HasColumnType("decimal(10,8)");
+
+            entity.Property(r => r.repLongitud)
+                .HasColumnName("repLongitud")
+                .HasColumnType("decimal(10,8)");
+
+            entity.Property(r => r.repEstadoDel)
+                .HasColumnName("repEstadoDel")
+                .HasDefaultValue(true);
+
+            entity.HasOne(r => r.Vendedor)
+                .WithMany()
+                .HasForeignKey(r => r.venId)
+                .HasConstraintName("FK_ReporteActividad_Vendedor")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Supervisor)
+                .WithMany()
+                .HasForeignKey(r => r.supId)
+                .HasConstraintName("FK_ReporteActividad_Supervisor")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Cliente)
+                .WithMany()
+                .HasForeignKey(r => r.clId)
+                .HasConstraintName("FK_ReporteActividad_Cliente")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Visita)
+                .WithMany()
+                .HasForeignKey(r => r.visId)
+                .HasConstraintName("FK_ReporteActividad_Visita")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Asistencia)
+                .WithMany()
+                .HasForeignKey(r => r.asiId)
+                .HasConstraintName("FK_ReporteActividad_Asistencia")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Evidencia)
+                .WithMany()
+                .HasForeignKey(r => r.eviId)
+                .HasConstraintName("FK_ReporteActividad_Evidencia")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Ruta)
+                .WithMany()
+                .HasForeignKey(r => r.rutId)
+                .HasConstraintName("FK_ReporteActividad_Ruta")
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(r => r.Zona)
+                .WithMany()
+                .HasForeignKey(r => r.zonId)
+                .HasConstraintName("FK_ReporteActividad_Zona")
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
 

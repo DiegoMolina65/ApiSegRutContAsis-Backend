@@ -3,18 +3,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SegRutContAsis.Business.Interfaces;
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
+using SegRutContAsis.Business.Interfaces.AsignacionSupervisorVendedor;
 using SegRutContAsis.Business.Interfaces.Asistencia;
 using SegRutContAsis.Business.Interfaces.Authentication;
 using SegRutContAsis.Business.Interfaces.Cliente;
 using SegRutContAsis.Business.Interfaces.DireccionCliente;
 using SegRutContAsis.Business.Interfaces.Evidencia;
 using SegRutContAsis.Business.Interfaces.MarcarLlegadaVisita;
+using SegRutContAsis.Business.Interfaces.ReportesActividad;
 using SegRutContAsis.Business.Interfaces.Rol;
 using SegRutContAsis.Business.Interfaces.Ruta;
 using SegRutContAsis.Business.Interfaces.SeguimientoVendedor;
 using SegRutContAsis.Business.Interfaces.Visita;
 using SegRutContAsis.Business.Interfaces.Zona;
 using SegRutContAsis.Business.Services;
+using SegRutContAsis.Business.Services.Reporte;
 using SegRutContAsis.Business.Services.Rol;
 using System.Text;
 
@@ -59,6 +62,8 @@ builder.Services.AddScoped<ISeguimientoVendedorService, SeguimientoVendedorServi
 builder.Services.AddScoped<IDireccionClienteService, DireccionClienteService>();
 builder.Services.AddScoped<IAsignacionClienteVendedorService, AsignacionClienteVendedorService>();
 builder.Services.AddScoped<IMarcarLlegadaVisitaService,  MarcarLlegadaVisitaService>();
+builder.Services.AddScoped<IAsignacionSupervisorVendedorService, AsignacionSupervisorVendedorService>();
+builder.Services.AddScoped<IReportesActividadService, ReporteActividadService>();
 
 // Configuración de JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -83,7 +88,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // En produccion quitar
-// app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -93,7 +98,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // En produccion habilitar
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

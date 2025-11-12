@@ -101,8 +101,8 @@ namespace SegRutContAsis.Business.Services
             try
             {
                 var asignacion = await _context.AsignacionSupervisorVendedor
-                    .Include(a => a.Supervisor)
-                    .Include(a => a.Vendedor)
+                    .Include(a => a.Supervisor).ThenInclude(s => s.Usuario)
+                    .Include(a => a.Vendedor).ThenInclude(s => s.Usuario)
                     .FirstOrDefaultAsync(a => a.asvId == id);
 
                 if (asignacion == null)
@@ -131,8 +131,8 @@ namespace SegRutContAsis.Business.Services
             try
             {
                 var asignaciones = await _context.AsignacionSupervisorVendedor
-                    .Include(a => a.Supervisor)
-                    .Include(a => a.Vendedor)
+                    .Include(a => a.Supervisor).ThenInclude(s => s.Usuario)
+                    .Include(a => a.Vendedor).ThenInclude(s => s.Usuario)
                     .OrderByDescending(a => a.asvFechaCreacion)
                     .ToListAsync();
 
@@ -185,7 +185,7 @@ namespace SegRutContAsis.Business.Services
             try
             {
                 var lista = await _context.AsignacionSupervisorVendedor
-                    .Include(x => x.Vendedor)
+                    .Include(x => x.Vendedor).ThenInclude(s => s.Usuario)
                     .Where(x => x.supId == supervisorId && x.asvEstadoDel)
                     .ToListAsync();
 
@@ -210,7 +210,7 @@ namespace SegRutContAsis.Business.Services
             try
             {
                 var lista = await _context.AsignacionSupervisorVendedor
-                    .Include(x => x.Supervisor)
+                    .Include(x => x.Supervisor).ThenInclude(s => s.Usuario)
                     .Where(x => x.venId == vendedorId && x.asvEstadoDel)
                     .ToListAsync();
 

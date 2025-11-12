@@ -10,4 +10,8 @@
     <None Remove="Entities\Asistencia.cs~RF9cb5a53.TMP" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2025.7.4" />
+  </ItemGroup>
+
 </Project>
