@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.Visita;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using SegRutContAsis.Business.DTO.Response.Visita;
 using SegRutContAsis.Business.Interfaces.Visita;
 using SegRutContAsis.Domain.Entities;
@@ -104,45 +105,161 @@ public class VisitaService : IVisitaService
             SucursalLongitud = v.DireccionCliente?.dirClLongitud,
             NombreZona = v.DireccionCliente?.Zona?.zonNombre,
             Direccion = v.DireccionCliente?.dirClDireccion,
-            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
+            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto,
+            NombreRuta = v.Ruta!.rutNombre,
+            FechaEjecucionRuta = v.Ruta!.rutFechaEjecucion
         };
     }
 
-    // Obtener Todas las Visitas
-    public async Task<List<VisitaResponseDTO>> ObtenerTodasVisitas()
+    // Obtener Todas las Visitas filtradas por rol
+    public async Task<List<VisitaResponseDTO>> ObtenerTodasVisitas(UsuarioReponseDTO usuarioActual)
     {
-        var visitas = await _context.Visita
-            .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
-            .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
-            .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
-            .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel)
-            .ToListAsync();
-
-        return visitas.Select(v => new VisitaResponseDTO
+        // ADMINISTRADOR: ve todas las visitas
+        if (usuarioActual.EsAdministrador)
         {
-            visId = v.visId,
-            rutId = v.rutId,
-            dirClId = v.dirClId,
-            visFechaCreacion = v.visFechaCreacion,
-            visEstadoDel = v.visEstadoDel,
-            visComentario = v.visComentario,
-            NombreCliente = v.DireccionCliente?.Cliente?.clNombreCompleto,
-            NombreSucursalCliente = v.DireccionCliente?.dirClNombreSucursal,
-            SucursalLatitud = v.DireccionCliente?.dirClLatitud,
-            SucursalLongitud = v.DireccionCliente?.dirClLongitud,
-            NombreZona = v.DireccionCliente?.Zona?.zonNombre,
-            Direccion = v.DireccionCliente?.dirClDireccion,
-            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
-        }).ToList();
+            return await _context.Visita
+                .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
+                .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+                .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
+                .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel)
+                .Select(v => new VisitaResponseDTO
+                {
+                    visId = v.visId,
+                    rutId = v.rutId,
+                    dirClId = v.dirClId,
+                    visFechaCreacion = v.visFechaCreacion,
+                    visEstadoDel = v.visEstadoDel,
+                    visComentario = v.visComentario,
+                    NombreCliente = v.DireccionCliente!.Cliente!.clNombreCompleto,
+                    NombreSucursalCliente = v.DireccionCliente.dirClNombreSucursal,
+                    SucursalLatitud = v.DireccionCliente.dirClLatitud,
+                    SucursalLongitud = v.DireccionCliente.dirClLongitud,
+                    NombreZona = v.DireccionCliente.Zona!.zonNombre,
+                    Direccion = v.DireccionCliente.dirClDireccion,
+                    NombreVendedor = v.Ruta!.Vendedor!.Usuario!.usrNombreCompleto,
+                    NombreRuta = v.Ruta!.rutNombre,
+                    FechaEjecucionRuta = v.Ruta!.rutFechaEjecucion
+                })
+                .ToListAsync();
+        }
+
+        // SUPERVISOR: solo visitas de las rutas de sus vendedores
+        if (usuarioActual.EsSupervisor)
+        {
+            var supervisor = await _context.Supervisor
+                .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+            if (supervisor == null)
+                return new List<VisitaResponseDTO>();
+
+            int supId = supervisor.supId;
+
+            var vendedoresIds = await _context.AsignacionSupervisorVendedor
+                .Where(a => a.supId == supId && a.asvEstadoDel)
+                .Select(a => a.venId)
+                .ToListAsync();
+
+            if (!vendedoresIds.Any())
+                return new List<VisitaResponseDTO>();
+
+            var rutasIds = await _context.Ruta
+                .Where(r => vendedoresIds.Contains(r.VendedorId) && r.rutEstadoDel)
+                .Select(r => r.rutId)
+                .ToListAsync();
+
+            if (!rutasIds.Any())
+                return new List<VisitaResponseDTO>();
+
+            return await _context.Visita
+                .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
+                .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+                .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
+                .Where(v => v.visEstadoDel && rutasIds.Contains(v.rutId))
+                .Select(v => new VisitaResponseDTO
+                {
+                    visId = v.visId,
+                    rutId = v.rutId,
+                    dirClId = v.dirClId,
+                    visFechaCreacion = v.visFechaCreacion,
+                    visEstadoDel = v.visEstadoDel,
+                    visComentario = v.visComentario,
+                    NombreCliente = v.DireccionCliente!.Cliente!.clNombreCompleto,
+                    NombreSucursalCliente = v.DireccionCliente.dirClNombreSucursal,
+                    SucursalLatitud = v.DireccionCliente.dirClLatitud,
+                    SucursalLongitud = v.DireccionCliente.dirClLongitud,
+                    NombreZona = v.DireccionCliente.Zona!.zonNombre,
+                    Direccion = v.DireccionCliente.dirClDireccion,
+                    NombreVendedor = v.Ruta!.Vendedor!.Usuario!.usrNombreCompleto,
+                    NombreRuta = v.Ruta!.rutNombre,
+                    FechaEjecucionRuta = v.Ruta!.rutFechaEjecucion
+                })
+                .ToListAsync();
+        }
+
+        // VENDEDOR: solo sus propias visitas
+        if (usuarioActual.EsVendedor)
+        {
+            var vendedor = await _context.Vendedor
+                .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+            if (vendedor == null)
+                return new List<VisitaResponseDTO>();
+
+            int venId = vendedor.venId;
+
+            var rutasIds = await _context.Ruta
+                .Where(r => r.VendedorId == venId && r.rutEstadoDel)
+                .Select(r => r.rutId)
+                .ToListAsync();
+
+            if (!rutasIds.Any())
+                return new List<VisitaResponseDTO>();
+
+            return await _context.Visita
+                .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
+                .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+                .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
+                .Where(v => v.visEstadoDel && rutasIds.Contains(v.rutId))
+                .Select(v => new VisitaResponseDTO
+                {
+                    visId = v.visId,
+                    rutId = v.rutId,
+                    dirClId = v.dirClId,
+                    visFechaCreacion = v.visFechaCreacion,
+                    visEstadoDel = v.visEstadoDel,
+                    visComentario = v.visComentario,
+                    NombreCliente = v.DireccionCliente!.Cliente!.clNombreCompleto,
+                    NombreSucursalCliente = v.DireccionCliente.dirClNombreSucursal,
+                    SucursalLatitud = v.DireccionCliente.dirClLatitud,
+                    SucursalLongitud = v.DireccionCliente.dirClLongitud,
+                    NombreZona = v.DireccionCliente.Zona!.zonNombre,
+                    Direccion = v.DireccionCliente.dirClDireccion,
+                    NombreVendedor = v.Ruta!.Vendedor!.Usuario!.usrNombreCompleto,
+                    NombreRuta = v.Ruta!.rutNombre,
+                    FechaEjecucionRuta = v.Ruta!.rutFechaEjecucion
+                })
+                .ToListAsync();
+        }
+
+        return new List<VisitaResponseDTO>();
     }
 
-    // Obtener visitas filtradas
-    public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId) =>
-        (await ObtenerTodasVisitas()).Where(v => v.rutId == rutaId).ToList();
 
-    public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorDireccionCliente(int clienteId) =>
-        (await ObtenerTodasVisitas()).Where(v => v.dirClId == clienteId).ToList();
+    // Obtener visitas filtradas por ruta
+    public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId, UsuarioReponseDTO usuarioActual)
+    {
+        var visitas = await ObtenerTodasVisitas(usuarioActual);
+        return visitas.Where(v => v.rutId == rutaId).ToList();
+    }
 
+    // Obtener visitas filtradas por dirección de cliente
+    public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorDireccionCliente(int clienteId, UsuarioReponseDTO usuarioActual)
+    {
+        var visitas = await ObtenerTodasVisitas(usuarioActual);
+        return visitas.Where(v => v.dirClId == clienteId).ToList();
+    }
+
+    // Obtener visitas por vendedor
     public async Task<List<VisitaResponseDTO>> ObtenerVisitasPorVendedor(int venId)
     {
         var visitas = await _context.Visita
@@ -166,7 +283,9 @@ public class VisitaService : IVisitaService
             SucursalLongitud = v.DireccionCliente?.dirClLongitud,
             NombreZona = v.DireccionCliente?.Zona?.zonNombre,
             Direccion = v.DireccionCliente?.dirClDireccion,
-            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
+            NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto,
+            NombreRuta = v.Ruta!.rutNombre,
+            FechaEjecucionRuta = v.Ruta!.rutFechaEjecucion
         }).ToList();
     }
 }

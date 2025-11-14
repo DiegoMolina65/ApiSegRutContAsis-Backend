@@ -1,4 +1,5 @@
 ﻿using SegRutContAsis.Business.DTO.Request.Visita;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using SegRutContAsis.Business.DTO.Response.Visita;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,9 @@ namespace SegRutContAsis.Business.Interfaces.Visita
         Task<VisitaResponseDTO> ActualizarVisita(int id, VisitaRequestDTO dto);
         Task<bool> DeshabilitarVisita(int id);
         Task<VisitaResponseDTO> ObtenerVisitaId(int id);
-        Task<List<VisitaResponseDTO>> ObtenerTodasVisitas();
-        Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId);
-        Task<List<VisitaResponseDTO>> ObtenerVisitasPorDireccionCliente(int clienteId);
+        Task<List<VisitaResponseDTO>> ObtenerTodasVisitas(UsuarioReponseDTO usuarioActual);
+        Task<List<VisitaResponseDTO>> ObtenerVisitasPorRuta(int rutaId, UsuarioReponseDTO usuarioActual);
+        Task<List<VisitaResponseDTO>> ObtenerVisitasPorDireccionCliente(int clienteId, UsuarioReponseDTO usuarioActual);
         Task<List<VisitaResponseDTO>> ObtenerVisitasPorVendedor(int venId);
     }
 }

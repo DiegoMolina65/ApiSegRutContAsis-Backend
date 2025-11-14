@@ -138,6 +138,35 @@ namespace SegRutContAsis.Business.Services
                         .ToListAsync();
                 }
 
+                // VENDEDOR: Solo sus propias rutas
+                if (usuarioActual.EsVendedor)
+                {
+                    var vendedor = await _context.Vendedor
+                        .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+                    if (vendedor == null)
+                        return new List<RutaResponseDTO>();
+
+                    int venId = vendedor.venId;
+
+                    return await _context.Ruta
+                        .Where(r => r.VendedorId == venId && r.rutEstadoDel)
+                        .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                        .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                        .Select(r => new RutaResponseDTO
+                        {
+                            rutId = r.rutId,
+                            venId = r.VendedorId,
+                            supId = r.SupervisorId,
+                            rutNombre = r.rutNombre,
+                            rutComentario = r.rutComentario,
+                            rutFechaEjecucion = r.rutFechaEjecucion,
+                            NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                            NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
+                        })
+                        .ToListAsync();
+                }
+
                 return new List<RutaResponseDTO>();
             }
             catch (Exception ex)
@@ -192,6 +221,16 @@ namespace SegRutContAsis.Business.Services
                 if (dto.rutFechaEjecucion == null)
                     throw new Exception("Debe especificar la nueva fecha de ejecución.");
 
+                // Validación de fecha
+                var fechaHoy = DateTime.Today;
+
+                if (ruta.rutFechaEjecucion.Date == fechaHoy)
+                    throw new Exception("No se puede editar la ruta: la fecha de ejecución es hoy.");
+
+                if (ruta.rutFechaEjecucion.Date < fechaHoy)
+                    throw new Exception("No se puede editar la ruta: la fecha de ejecución ya pasó.");
+
+                // Actualizar datos
                 ruta.VendedorId = dto.venId;
                 ruta.SupervisorId = dto.supId;
                 ruta.rutNombre = dto.rutNombre;
@@ -222,6 +261,7 @@ namespace SegRutContAsis.Business.Services
                 throw new Exception($"Error al actualizar la ruta con ID {id}: {ex.Message}");
             }
         }
+
 
         // Deshabilitar Ruta
         public async Task<bool> DeshabilitarRuta(int id)

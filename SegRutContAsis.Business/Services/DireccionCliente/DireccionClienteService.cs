@@ -214,6 +214,49 @@ namespace SegRutContAsis.Business.Services
                     .ToListAsync();
             }
 
+            // VENDEDOR: Solo direcciones de los clientes asignados al vendedor
+            if (usuarioActual.EsVendedor)
+            {
+                var vendedor = await _context.Vendedor
+                    .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+                if (vendedor == null)
+                    return new List<DireccionClienteResponseDTO>();
+
+                int venId = vendedor.venId;
+
+                var clientesIds = await _context.AsignacionClienteVendedor
+                    .Where(a => a.venId == venId && a.asgEstadoDel)
+                    .Select(a => a.clId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!clientesIds.Any())
+                    return new List<DireccionClienteResponseDTO>();
+
+                return await _context.DireccionCliente
+                    .Include(d => d.Cliente)
+                    .Include(d => d.Zona)
+                    .Where(d => clientesIds.Contains(d.clId) && d.dirClEstadoDel)
+                    .Select(d => new DireccionClienteResponseDTO
+                    {
+                        dirClId = d.dirClId,
+                        clId = d.clId,
+                        zonId = d.zonId,
+                        dirClNombreSucursal = d.dirClNombreSucursal,
+                        dirClDireccion = d.dirClDireccion,
+                        dirClLatitud = d.dirClLatitud,
+                        dirClLongitud = d.dirClLongitud,
+                        dirClFechaCreacion = d.dirClFechaCreacion,
+                        dirClEstadoDel = d.dirClEstadoDel,
+                        NombreCliente = d.Cliente.clNombreCompleto,
+                        NombreZona = d.Zona != null ? d.Zona.zonNombre : null
+                    })
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+
             return new List<DireccionClienteResponseDTO>();
         }
 

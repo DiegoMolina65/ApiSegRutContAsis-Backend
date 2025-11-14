@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.AsignacionClienteVendedor;
 using SegRutContAsis.Business.DTO.Response.AsignacionClienteVendedor;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
 using SegRutContAsis.Domain.Entities;
 using System;
@@ -161,29 +162,66 @@ namespace SegRutContAsis.Business.Services
         }
 
         // Obtener todas Asignacion Cliente-Vendedor
-        public async Task<List<AsignacionClienteVendedorResponseDTO>> ObtenerTodasAsignaciones()
+        public async Task<List<AsignacionClienteVendedorResponseDTO>> ObtenerTodasAsignaciones(UsuarioReponseDTO usuarioActual)
         {
-            var asignaciones = await _context.AsignacionClienteVendedor
-                .Include(a => a.Supervisor)
-                .ThenInclude(s => s.Usuario)
-                .Include(a => a.Vendedor)
-                .ThenInclude(v => v.Usuario)
-                .Include(a => a.Cliente)
-                .Where(a => a.asgEstadoDel)
-                .ToListAsync();
-
-            return asignaciones.Select(result => new AsignacionClienteVendedorResponseDTO
+            // ADMINISTRADOR: Ver todas las asignaciones
+            if (usuarioActual.EsAdministrador)
             {
-                asgId = result.asgId,
-                supId = result.supId,
-                SupervisorNombre = result.Supervisor?.Usuario?.usrNombreCompleto!,
-                venId = result.venId,
-                VendedorNombre = result.Vendedor?.Usuario?.usrNombreCompleto!,
-                clId = result.clId,
-                ClienteNombre = result.Cliente?.clNombreCompleto!,
-                asgFechaCreacion = result.asgFechaCreacion,
-                asgEstadoDel = result.asgEstadoDel
-            }).ToList();
+                var asignaciones = await _context.AsignacionClienteVendedor
+                    .Include(a => a.Supervisor).ThenInclude(s => s.Usuario)
+                    .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
+                    .Include(a => a.Cliente)
+                    .Where(a => a.asgEstadoDel)
+                    .ToListAsync();
+
+                return asignaciones.Select(a => new AsignacionClienteVendedorResponseDTO
+                {
+                    asgId = a.asgId,
+                    supId = a.supId,
+                    SupervisorNombre = a.Supervisor?.Usuario?.usrNombreCompleto!,
+                    venId = a.venId,
+                    VendedorNombre = a.Vendedor?.Usuario?.usrNombreCompleto!,
+                    clId = a.clId,
+                    ClienteNombre = a.Cliente?.clNombreCompleto!,
+                    asgFechaCreacion = a.asgFechaCreacion,
+                    asgEstadoDel = a.asgEstadoDel
+                }).ToList();
+            }
+
+            // SUPERVISOR: Ver solo asignaciones de sus vendedores
+            if (usuarioActual.EsSupervisor)
+            {
+                var supervisor = await _context.Supervisor
+                    .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+                if (supervisor == null)
+                    return new List<AsignacionClienteVendedorResponseDTO>();
+
+                int supId = supervisor.supId;
+
+                var asignaciones = await _context.AsignacionClienteVendedor
+                    .Include(a => a.Supervisor).ThenInclude(s => s.Usuario)
+                    .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
+                    .Include(a => a.Cliente)
+                    .Where(a => a.asgEstadoDel && a.supId == supId)
+                    .ToListAsync();
+
+                return asignaciones.Select(a => new AsignacionClienteVendedorResponseDTO
+                {
+                    asgId = a.asgId,
+                    supId = a.supId,
+                    SupervisorNombre = a.Supervisor?.Usuario?.usrNombreCompleto!,
+                    venId = a.venId,
+                    VendedorNombre = a.Vendedor?.Usuario?.usrNombreCompleto!,
+                    clId = a.clId,
+                    ClienteNombre = a.Cliente?.clNombreCompleto!,
+                    asgFechaCreacion = a.asgFechaCreacion,
+                    asgEstadoDel = a.asgEstadoDel
+                }).ToList();
+            }
+
+            return new List<AsignacionClienteVendedorResponseDTO>();
         }
+
     }
 }

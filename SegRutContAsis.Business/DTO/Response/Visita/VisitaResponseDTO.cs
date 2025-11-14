@@ -23,6 +23,8 @@ namespace SegRutContAsis.Business.DTO.Response.Visita
         public string? NombreZona { get; set; }
         public string? Direccion { get; set; }
         public string? NombreVendedor { get; set; }
+        public string? NombreRuta { get; set; }
+        public DateTime? FechaEjecucionRuta { get; set; }
     }
 
 }

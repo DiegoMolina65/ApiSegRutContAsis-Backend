@@ -107,8 +107,9 @@ namespace SegRutContAsis.Api.Controllers
             try
             {
                 var resultado = await _service.obtenerMarcacionesPorVisita(visId);
-                if (resultado == null || resultado.Count == 0)
-                    return NotFound(new { mensaje = "No se encontraron marcaciones para esta visita" });
+
+                if (resultado == null)
+                    return NotFound(new { mensaje = "La visita o el recurso no existe" });
 
                 return Ok(resultado);
             }

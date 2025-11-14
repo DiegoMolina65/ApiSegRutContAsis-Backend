@@ -17,7 +17,6 @@ namespace SegRutContAsis.Business.DTO.Response.MarcarLlegadaVisita
         public DateTime mlvFechaCreacion { get; set; } = DateTime.Now;
 
         // Datos adicionales
-
         public string? NombreCliente { get; set; }
         public string? NombreSucursalCliente { get; set; }
         public decimal? SucursalLatitud { get; set; }      

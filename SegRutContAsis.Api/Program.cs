@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SegRutContAsis.Business.Interfaces;
+using QuestPDF.Infrastructure;
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
 using SegRutContAsis.Business.Interfaces.AsignacionSupervisorVendedor;
 using SegRutContAsis.Business.Interfaces.Asistencia;
@@ -42,6 +42,7 @@ builder.Services.AddCors(options =>
 });
 */
 
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -66,6 +67,10 @@ builder.Services.AddScoped<IAsignacionClienteVendedorService, AsignacionClienteV
 builder.Services.AddScoped<IMarcarLlegadaVisitaService,  MarcarLlegadaVisitaService>();
 builder.Services.AddScoped<IAsignacionSupervisorVendedorService, AsignacionSupervisorVendedorService>();
 builder.Services.AddScoped<IReportesActividadService, ReporteActividadService>();
+
+
+// Configuración PDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Configuración de JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

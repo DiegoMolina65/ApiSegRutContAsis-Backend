@@ -73,7 +73,7 @@ namespace Tests.Services
             await _context.SaveChangesAsync();
 
             // Asociar roles
-            _context.UsuarioRol.Add(new UsuarioRol { usrID = usuario.usrId, rolId = adminRol.rolId });
+            _context.UsuarioRol.Add(new UsuarioRol { usrId = usuario.usrId, rolId = adminRol.rolId });
             await _context.SaveChangesAsync();
         }
 
@@ -142,7 +142,7 @@ namespace Tests.Services
             var usuario = await _service.ActualizarUsuario(1, dto);
 
             Assert.Equal("Juan Actualizado", usuario.usrNombreCompleto);
-            var roles = _context.UsuarioRol.Where(ur => ur.usrID == usuario.usrId).Select(ur => ur.Rol.rolNombre).ToList();
+            var roles = _context.UsuarioRol.Where(ur => ur.usrId == usuario.usrId).Select(ur => ur.Rol.rolNombre).ToList();
             Assert.Contains("SUPERVISOR", roles);
         }
 

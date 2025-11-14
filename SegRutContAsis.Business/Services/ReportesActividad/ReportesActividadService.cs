@@ -213,84 +213,77 @@ namespace SegRutContAsis.Business.Services.Reporte
                         page.DefaultTextStyle(x => x.FontSize(10));
                         page.PageColor(Colors.White);
 
-                        // Encabezado
                         page.Header()
                             .Text(datosReporte.Titulo)
                             .SemiBold().FontSize(16).FontColor(Colors.Blue.Darken2)
                             .AlignCenter();
 
-                        // Subtítulo
-                        if (!string.IsNullOrWhiteSpace(datosReporte.Subtitulo))
+                        page.Content().Column(column =>
                         {
-                            page.Content()
-                                .Text(datosReporte.Subtitulo)
-                                .FontSize(11)
-                                .FontColor(Colors.Grey.Darken1)
-                                .AlignCenter();
-                        }
-
-                        // Espaciado
-                        page.Content().PaddingVertical(10);
-
-                        // Tabla de detalles
-                        page.Content().Table(table =>
-                        {
-                            // Cabecera
-                            table.ColumnsDefinition(columns =>
+                            if (!string.IsNullOrWhiteSpace(datosReporte.Subtitulo))
                             {
-                                columns.RelativeColumn(2);
-                                columns.RelativeColumn(3);
-                                columns.RelativeColumn(3);
-                                columns.RelativeColumn(2);
-                                columns.RelativeColumn(2);
-                            });
-
-                            table.Header(header =>
-                            {
-                                header.Cell().Element(CellStyle).Text("Fecha");
-                                header.Cell().Element(CellStyle).Text("Actividad");
-                                header.Cell().Element(CellStyle).Text("Cliente / Dirección");
-                                header.Cell().Element(CellStyle).Text("Latitud");
-                                header.Cell().Element(CellStyle).Text("Longitud");
-
-                                static IContainer CellStyle(IContainer container) =>
-                                    container.PaddingVertical(5).Background(Colors.Grey.Lighten3)
-                                             .BorderBottom(1).BorderColor(Colors.Grey.Medium)
-                                             .AlignCenter();
-                            });
-
-                            // Filas
-                            foreach (var d in datosReporte.Detalles)
-                            {
-                                table.Cell().Element(CellStyle).Text(d.Fecha.ToString("dd/MM/yyyy"));
-                                table.Cell().Element(CellStyle).Text(d.TipoActividad);
-                                table.Cell().Element(CellStyle).Text($"{d.Cliente ?? "-"} / {d.Direccion ?? "-"}");
-                                table.Cell().Element(CellStyle).Text(d.Latitud?.ToString("F5") ?? "-");
-                                table.Cell().Element(CellStyle).Text(d.Longitud?.ToString("F5") ?? "-");
-
-                                static IContainer CellStyle(IContainer container) =>
-                                    container.PaddingVertical(3).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1);
+                                column.Item().Text(datosReporte.Subtitulo)
+                                    .FontSize(11)
+                                    .FontColor(Colors.Grey.Darken1)
+                                    .AlignCenter();
                             }
+
+                            column.Item().PaddingVertical(10);
+
+                            column.Item().Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(3);
+                                    columns.RelativeColumn(3);
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(2);
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Element(CellStyle).Text("Fecha");
+                                    header.Cell().Element(CellStyle).Text("Actividad");
+                                    header.Cell().Element(CellStyle).Text("Cliente / Dirección");
+                                    header.Cell().Element(CellStyle).Text("Latitud");
+                                    header.Cell().Element(CellStyle).Text("Longitud");
+
+                                    static IContainer CellStyle(IContainer container) =>
+                                        container.PaddingVertical(5).Background(Colors.Grey.Lighten3)
+                                                 .BorderBottom(1).BorderColor(Colors.Grey.Medium)
+                                                 .AlignCenter();
+                                });
+
+                                foreach (var d in datosReporte.Detalles)
+                                {
+                                    table.Cell().Element(CellStyle).Text(d.Fecha.ToString("dd/MM/yyyy"));
+                                    table.Cell().Element(CellStyle).Text(d.TipoActividad);
+                                    table.Cell().Element(CellStyle).Text($"{d.Cliente ?? "-"} / {d.Direccion ?? "-"}");
+                                    table.Cell().Element(CellStyle).Text(d.Latitud?.ToString("F5") ?? "-");
+                                    table.Cell().Element(CellStyle).Text(d.Longitud?.ToString("F5") ?? "-");
+
+                                    static IContainer CellStyle(IContainer container) =>
+                                        container.PaddingVertical(3).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1);
+                                }
+                            });
+
+                            column.Item().PaddingTop(15).Column(col =>
+                            {
+                                if (datosReporte.TotalAsistencias != null)
+                                    col.Item().Text($"Total de Asistencias: {datosReporte.TotalAsistencias}").Bold();
+                                if (datosReporte.TotalVisitas != null)
+                                    col.Item().Text($"Total de Visitas: {datosReporte.TotalVisitas}").Bold();
+                                if (datosReporte.TotalHorasTrabajadas != null)
+                                    col.Item().Text($"Total Horas: {datosReporte.TotalHorasTrabajadas}").Bold();
+
+                                col.Item().PaddingTop(5).Text($"Generado por: {datosReporte.GeneradoPor} - {datosReporte.FechaGeneracion:dd/MM/yyyy HH:mm}");
+                            });
                         });
-
-                        // Espaciado y totales
-                        page.Content().PaddingTop(15);
-
-                        page.Content().Column(col =>
-                        {
-                            if (datosReporte.TotalAsistencias != null)
-                                col.Item().Text($"Total de Asistencias: {datosReporte.TotalAsistencias}").Bold();
-                            if (datosReporte.TotalVisitas != null)
-                                col.Item().Text($"Total de Visitas: {datosReporte.TotalVisitas}").Bold();
-                            if (datosReporte.TotalHorasTrabajadas != null)
-                                col.Item().Text($"Total Horas: {datosReporte.TotalHorasTrabajadas}").Bold();
-
-                            col.Item().PaddingTop(5).Text($"Generado por: {datosReporte.GeneradoPor} - {datosReporte.FechaGeneracion:dd/MM/yyyy HH:mm}");
-                        });
+                  
                     });
                 });
 
-                // Generar PDF en memoria
                 using var stream = new MemoryStream();
                 document.GeneratePdf(stream);
                 return stream.ToArray();

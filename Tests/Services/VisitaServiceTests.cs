@@ -93,7 +93,6 @@ namespace Tests.Services
             {
                 rutId = ruta.rutId,
                 dirClId = direccion.dirClId,
-                visFecha = DateTime.Now,
                 visComentario = "Primera visita"
             };
 
@@ -177,7 +176,6 @@ namespace Tests.Services
             {
                 rutId = ruta.rutId,
                 dirClId = direccion.dirClId,
-                visFecha = DateTime.Now,
                 visComentario = "Comentario inicial",
                 visEstadoDel = true // Muy importante
             };
@@ -188,7 +186,6 @@ namespace Tests.Services
             {
                 rutId = ruta.rutId,
                 dirClId = direccion.dirClId,
-                visFecha = DateTime.Now.AddDays(1),
                 visComentario = "Comentario actualizado"
             };
 
