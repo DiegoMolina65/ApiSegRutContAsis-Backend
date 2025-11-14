@@ -8,7 +8,7 @@ namespace SegRutContAsis.Domain.Entities
 {
     public class UsuarioRol
     {
-        public int usrID { get; set; }
+        public int usrId { get; set; }
         public Usuario Usuario { get; set; }
 
         public int rolId { get; set; }

@@ -18,7 +18,8 @@ public class Usuario
 
     // Navegación
     public ICollection<UsuarioRol> UsuarioRoles { get; set; }
-    public Administrador Administrador { get; set; }
-    public Supervisor Supervisor { get; set; }
-    public Vendedor Vendedor { get; set; }
+    public Administrador? Administrador { get; set; }
+    public Supervisor? Supervisor { get; set; }
+    public Vendedor? Vendedor { get; set; }
+
 }

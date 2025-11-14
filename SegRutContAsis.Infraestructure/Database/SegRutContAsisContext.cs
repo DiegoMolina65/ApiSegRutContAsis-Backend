@@ -61,8 +61,8 @@ public class SegRutContAsisContext : DbContext
         modelBuilder.Entity<UsuarioRol>(entity =>
         {
             entity.ToTable("UsuarioRol");
-            entity.HasKey(ur => new { ur.usrID, ur.rolId });
-            entity.HasOne(ur => ur.Usuario).WithMany(u => u.UsuarioRoles).HasForeignKey(ur => ur.usrID);
+            entity.HasKey(ur => new { ur.usrId, ur.rolId });
+            entity.HasOne(ur => ur.Usuario).WithMany(u => u.UsuarioRoles).HasForeignKey(ur => ur.usrId);
             entity.HasOne(ur => ur.Rol).WithMany(r => r.UsuarioRoles).HasForeignKey(ur => ur.rolId);
         });
 
