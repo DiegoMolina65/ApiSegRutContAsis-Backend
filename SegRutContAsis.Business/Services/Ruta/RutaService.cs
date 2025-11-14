@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.Ruta;
 using SegRutContAsis.Business.DTO.Response.Ruta;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using SegRutContAsis.Business.Interfaces.Ruta;
 using SegRutContAsis.Domain.Entities;
 using System;
@@ -58,7 +59,7 @@ namespace SegRutContAsis.Business.Services
                     supId = ruta.SupervisorId,
                     rutNombre = ruta.rutNombre,
                     rutComentario = ruta.rutComentario,
-                    rutFechaEjecucion = ruta.rutFechaEjecucion
+                    rutFechaEjecucion = ruta.rutFechaEjecucion,
                 };
             }
             catch (DbUpdateException dbEx)
@@ -75,35 +76,76 @@ namespace SegRutContAsis.Business.Services
         }
 
         // Obtener rutas
-        public async Task<List<RutaResponseDTO>> ObtenerRutas()
+        public async Task<List<RutaResponseDTO>> ObtenerRutas(UsuarioReponseDTO usuarioActual)
         {
             try
             {
-                var rutas = await _context.Ruta
-                    .Where(r => r.rutEstadoDel)
-                    .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
-                    .Select(r => new RutaResponseDTO
-                    {
-                        rutId = r.rutId,
-                        venId = r.VendedorId,
-                        supId = r.SupervisorId,
-                        rutNombre = r.rutNombre,
-                        rutComentario = r.rutComentario,
-                        rutFechaEjecucion = r.rutFechaEjecucion,
-                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
-                    })
-                    .ToListAsync();
+                // ADMINISTRADOR: Ve todas las rutas
+                if (usuarioActual.EsAdministrador)
+                {
+                    return await _context.Ruta
+                        .Where(r => r.rutEstadoDel)
+                        .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                        .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                        .Select(r => new RutaResponseDTO
+                        {
+                            rutId = r.rutId,
+                            venId = r.VendedorId,
+                            supId = r.SupervisorId,
+                            rutNombre = r.rutNombre,
+                            rutComentario = r.rutComentario,
+                            rutFechaEjecucion = r.rutFechaEjecucion,
+                            NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                            NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
+                        })
+                        .ToListAsync();
+                }
 
-                if (!rutas.Any())
-                    throw new Exception("No se encontraron rutas activas registradas.");
+                // SUPERVISOR: Solo rutas de sus vendedores asignados
+                if (usuarioActual.EsSupervisor)
+                {
+                    var supervisor = await _context.Supervisor
+                        .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
 
-                return rutas;
+                    if (supervisor == null)
+                        return new List<RutaResponseDTO>();
+
+                    int supId = supervisor.supId;
+
+                    var vendedoresIds = await _context.AsignacionSupervisorVendedor
+                        .Where(a => a.supId == supId && a.asvEstadoDel)
+                        .Select(a => a.venId)
+                        .ToListAsync();
+
+                    if (!vendedoresIds.Any())
+                        return new List<RutaResponseDTO>();
+
+                    return await _context.Ruta
+                        .Where(r => vendedoresIds.Contains(r.VendedorId) && r.rutEstadoDel)
+                        .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                        .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                        .Select(r => new RutaResponseDTO
+                        {
+                            rutId = r.rutId,
+                            venId = r.VendedorId,
+                            supId = r.SupervisorId,
+                            rutNombre = r.rutNombre,
+                            rutComentario = r.rutComentario,
+                            rutFechaEjecucion = r.rutFechaEjecucion,
+                            NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                            NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
+                        })
+                        .ToListAsync();
+                }
+
+                return new List<RutaResponseDTO>();
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error al obtener las rutas: {ex.Message}");
             }
         }
+
 
         // Obtener rutas por ID
         public async Task<RutaResponseDTO> ObtenerRutaId(int id)
@@ -112,6 +154,7 @@ namespace SegRutContAsis.Business.Services
             {
                 var ruta = await _context.Ruta
                     .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                     .Where(r => r.rutEstadoDel && r.rutId == id)
                     .Select(r => new RutaResponseDTO
                     {
@@ -121,7 +164,8 @@ namespace SegRutContAsis.Business.Services
                         rutNombre = r.rutNombre,
                         rutComentario = r.rutComentario,
                         rutFechaEjecucion = r.rutFechaEjecucion,
-                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                        NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                        NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
                     })
                     .FirstOrDefaultAsync();
 
@@ -163,7 +207,7 @@ namespace SegRutContAsis.Business.Services
                     supId = ruta.SupervisorId,
                     rutNombre = ruta.rutNombre,
                     rutComentario = ruta.rutComentario,
-                    rutFechaEjecucion = ruta.rutFechaEjecucion
+                    rutFechaEjecucion = ruta.rutFechaEjecucion,
                 };
             }
             catch (DbUpdateException dbEx)
@@ -208,6 +252,7 @@ namespace SegRutContAsis.Business.Services
             {
                 var rutas = await _context.Ruta
                     .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                     .Where(r => r.rutEstadoDel && r.VendedorId == venId)
                     .Select(r => new RutaResponseDTO
                     {
@@ -217,7 +262,8 @@ namespace SegRutContAsis.Business.Services
                         rutNombre = r.rutNombre,
                         rutComentario = r.rutComentario,
                         rutFechaEjecucion = r.rutFechaEjecucion,
-                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                        NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                        NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
                     })
                     .ToListAsync();
 
@@ -239,6 +285,7 @@ namespace SegRutContAsis.Business.Services
             {
                 var rutas = await _context.Ruta
                     .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                    .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                     .Where(r => r.rutEstadoDel && r.SupervisorId == supId)
                     .Select(r => new RutaResponseDTO
                     {
@@ -248,7 +295,8 @@ namespace SegRutContAsis.Business.Services
                         rutNombre = r.rutNombre,
                         rutComentario = r.rutComentario,
                         rutFechaEjecucion = r.rutFechaEjecucion,
-                        NombreVendedor = r.Vendedor != null ? r.Vendedor.Usuario.usrNombreCompleto : null
+                        NombreVendedor = r.Vendedor.Usuario.usrNombreCompleto,
+                        NombreSupervisor = r.Supervisor.Usuario.usrNombreCompleto
                     })
                     .ToListAsync();
 

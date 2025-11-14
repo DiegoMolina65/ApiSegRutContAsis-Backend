@@ -82,9 +82,9 @@ public class VisitaService : IVisitaService
     public async Task<VisitaResponseDTO> ObtenerVisitaId(int id)
     {
         var v = await _context.Visita
-            .Include(x => x.DireccionCliente)
-                .ThenInclude(d => d.Cliente)
-            .Include(x => x.Ruta)
+            .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
+            .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+            .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
             .Where(x => x.visId == id && x.visEstadoDel && x.Ruta.rutEstadoDel)
             .FirstOrDefaultAsync();
 
@@ -98,8 +98,12 @@ public class VisitaService : IVisitaService
             visFechaCreacion = v.visFechaCreacion,
             visEstadoDel = v.visEstadoDel,
             visComentario = v.visComentario,
-            NombreCliente = v.DireccionCliente.Cliente?.clNombreCompleto,
+            NombreCliente = v.DireccionCliente?.Cliente?.clNombreCompleto,
             NombreSucursalCliente = v.DireccionCliente?.dirClNombreSucursal,
+            SucursalLatitud = v.DireccionCliente?.dirClLatitud,
+            SucursalLongitud = v.DireccionCliente?.dirClLongitud,
+            NombreZona = v.DireccionCliente?.Zona?.zonNombre,
+            Direccion = v.DireccionCliente?.dirClDireccion,
             NombreVendedor = v.Ruta?.Vendedor?.Usuario?.usrNombreCompleto
         };
     }
@@ -108,11 +112,9 @@ public class VisitaService : IVisitaService
     public async Task<List<VisitaResponseDTO>> ObtenerTodasVisitas()
     {
         var visitas = await _context.Visita
-            .Include(v => v.Ruta)
-                .ThenInclude(r => r.Vendedor)
-                    .ThenInclude(ven => ven.Usuario)
-            .Include(v => v.DireccionCliente)
-                .ThenInclude(d => d.Cliente)
+            .Include(v => v.Ruta).ThenInclude(r => r.Vendedor).ThenInclude(ven => ven.Usuario)
+            .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+            .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
             .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel)
             .ToListAsync();
 
@@ -145,8 +147,8 @@ public class VisitaService : IVisitaService
     {
         var visitas = await _context.Visita
             .Include(v => v.Ruta)
-            .Include(v => v.DireccionCliente)
-                .ThenInclude(d => d.Cliente)
+            .Include(v => v.DireccionCliente).ThenInclude(d => d.Cliente)
+            .Include(v => v.DireccionCliente).ThenInclude(z => z.Zona)
             .Where(v => v.visEstadoDel && v.Ruta.rutEstadoDel && v.Ruta.VendedorId == venId)
             .ToListAsync();
 

@@ -121,47 +121,27 @@ namespace SegRutContAsis.Api.Controllers
         [HttpGet("obtenerVendedores")]
         public async Task<IActionResult> ObtenerVendedores()
         {
-            try
-            {
-                var vendedores = await _usuarioService.ObtenerVendedores();
-                var result = vendedores.Select(v => new
-                {
-                    v.usrId,
-                    v.usrNombreCompleto,
-                    v.usrCorreo,
-                    v.Roles,
-                    IdVendedor = v.VendedorId
-                }).ToList();
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Token inválido");
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
+            var usuarioActual = await _usuarioService.ObtenerUsuarioId(userId);
+            var vendedores = await _usuarioService.ObtenerVendedores(usuarioActual);
+
+            return Ok(vendedores);
         }
 
         [HttpGet("obtenerSupervisores")]
         public async Task<IActionResult> ObtenerSupervisores()
         {
-            try
-            {
-                var supervisores = await _usuarioService.ObtenerSupervisores();
-                var result = supervisores.Select(s => new
-                {
-                    s.usrId,
-                    s.usrNombreCompleto,
-                    s.usrCorreo,
-                    s.Roles,
-                    IdSupervisor = s.SupervisorId 
-                }).ToList();
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Token inválido");
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
+            var usuarioActual = await _usuarioService.ObtenerUsuarioId(userId);
+            var supervisores = await _usuarioService.ObtenerSupervisores(usuarioActual);
+
+            return Ok(supervisores);
         }
     }
 }

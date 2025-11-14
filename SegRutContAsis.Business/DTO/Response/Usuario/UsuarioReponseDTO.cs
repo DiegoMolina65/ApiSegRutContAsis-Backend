@@ -25,6 +25,11 @@ namespace SegRutContAsis.Business.DTO.Response.Usuario
         public int? VendedorId { get; set; }
         public int? SupervisorId { get; set; }
 
+        // Propiedades de conveniencia para el frontend / lógica
+        public bool EsAdministrador => Roles.Contains("ADMINISTRADOR");
+        public bool EsSupervisor => Roles.Contains("SUPERVISOR");
+        public bool EsVendedor => Roles.Contains("VENDEDOR");
+
     }
 }
 

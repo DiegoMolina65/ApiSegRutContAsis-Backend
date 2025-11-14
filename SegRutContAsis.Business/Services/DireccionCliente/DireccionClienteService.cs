@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.DireccionCliente;
 using SegRutContAsis.Business.DTO.Response.DireccionCliente;
+using SegRutContAsis.Business.DTO.Response.Usuario;
+using SegRutContAsis.Business.Interfaces.Authentication;
 using SegRutContAsis.Business.Interfaces.DireccionCliente;
 using SegRutContAsis.Domain.Entities;
 
@@ -129,34 +131,91 @@ namespace SegRutContAsis.Business.Services
                     dirClLongitud = d.dirClLongitud,
                     dirClFechaCreacion = d.dirClFechaCreacion,
                     dirClEstadoDel = d.dirClEstadoDel,
-                    NombreCliente =d.Cliente != null ? d.Cliente.clNombreCompleto : null,
+                    NombreCliente = d.Cliente != null ? d.Cliente.clNombreCompleto : null,
                     NombreZona = d.Zona != null ? d.Zona.zonNombre : null
                 })
                 .ToListAsync();
         }
 
         // Obtener todas Direccion Cliente 
-        public async Task<List<DireccionClienteResponseDTO>> ObtenerTodas()
+        public async Task<List<DireccionClienteResponseDTO>> ObtenerTodas(UsuarioReponseDTO usuarioActual)
         {
-            return await _context.DireccionCliente
-                .Include(d => d.Cliente)
-                .Include(d => d.Zona)
-                .Where(x => x.dirClEstadoDel)
-                .Select(d => new DireccionClienteResponseDTO
-                {
-                    dirClId = d.dirClId,
-                    clId = d.clId,
-                    zonId = d.zonId,
-                    dirClNombreSucursal = d.dirClNombreSucursal,
-                    dirClDireccion = d.dirClDireccion,
-                    dirClLatitud = d.dirClLatitud,
-                    dirClLongitud = d.dirClLongitud,
-                    dirClFechaCreacion = d.dirClFechaCreacion,
-                    dirClEstadoDel = d.dirClEstadoDel,
-                    NombreCliente = d.Cliente.clNombreCompleto,
-                    NombreZona = d.Zona != null ? d.Zona.zonNombre : null
-                })
-                .ToListAsync();
+            // ADMINISTRADOR: Ver todos los clientes y rutas
+            if (usuarioActual.EsAdministrador)
+            {
+                return await _context.DireccionCliente
+                    .Include(d => d.Cliente)
+                    .Include(d => d.Zona)
+                    .Where(x => x.dirClEstadoDel)
+                    .Select(d => new DireccionClienteResponseDTO
+                    {
+                        dirClId = d.dirClId,
+                        clId = d.clId,
+                        zonId = d.zonId,
+                        dirClNombreSucursal = d.dirClNombreSucursal,
+                        dirClDireccion = d.dirClDireccion,
+                        dirClLatitud = d.dirClLatitud,
+                        dirClLongitud = d.dirClLongitud,
+                        dirClFechaCreacion = d.dirClFechaCreacion,
+                        dirClEstadoDel = d.dirClEstadoDel,
+                        NombreCliente = d.Cliente.clNombreCompleto,
+                        NombreZona = d.Zona != null ? d.Zona.zonNombre : null
+                    })
+                    .ToListAsync();
+            }
+
+            // SUPERVISOR: Filtrar por vendedores asignados y clientes asignados a esos vendedores
+            if (usuarioActual.EsSupervisor)
+            {
+                var supervisor = await _context.Supervisor
+                    .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+                if (supervisor == null)
+                    return new List<DireccionClienteResponseDTO>();
+
+                int supId = supervisor.supId;
+
+                var vendedoresIds = await _context.AsignacionSupervisorVendedor
+                    .Where(a => a.supId == supId && a.asvEstadoDel)
+                    .Select(a => a.venId)
+                    .ToListAsync();
+
+                if (!vendedoresIds.Any())
+                    return new List<DireccionClienteResponseDTO>();
+
+                var clientesIds = await _context.AsignacionClienteVendedor
+                    .Where(a => vendedoresIds.Contains(a.venId) && a.asgEstadoDel)
+                    .Select(a => a.clId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!clientesIds.Any())
+                    return new List<DireccionClienteResponseDTO>();
+
+                return await _context.DireccionCliente
+                    .Include(d => d.Cliente)
+                    .Include(d => d.Zona)
+                    .Where(d => clientesIds.Contains(d.clId) && d.dirClEstadoDel)
+                    .Select(d => new DireccionClienteResponseDTO
+                    {
+                        dirClId = d.dirClId,
+                        clId = d.clId,
+                        zonId = d.zonId,
+                        dirClNombreSucursal = d.dirClNombreSucursal,
+                        dirClDireccion = d.dirClDireccion,
+                        dirClLatitud = d.dirClLatitud,
+                        dirClLongitud = d.dirClLongitud,
+                        dirClFechaCreacion = d.dirClFechaCreacion,
+                        dirClEstadoDel = d.dirClEstadoDel,
+                        NombreCliente = d.Cliente.clNombreCompleto,
+                        NombreZona = d.Zona != null ? d.Zona.zonNombre : null
+                    })
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            return new List<DireccionClienteResponseDTO>();
         }
+
     }
 }

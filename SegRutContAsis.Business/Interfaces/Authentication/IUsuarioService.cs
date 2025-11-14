@@ -18,7 +18,7 @@ namespace SegRutContAsis.Business.Interfaces.Authentication
         Task<UsuarioReponseDTO> ObtenerUsuarioId(int id);
         Task<Usuario> ActualizarUsuario(int id, UsuarioRegistroRequestDTO dto);
         Task<bool> DeshabilitarUsuario(int id);
-        Task<List<UsuarioReponseDTO>> ObtenerSupervisores();
-        Task<List<UsuarioReponseDTO>> ObtenerVendedores();
+        Task<List<UsuarioReponseDTO>> ObtenerSupervisores(UsuarioReponseDTO usuarioActual);
+        Task<List<UsuarioReponseDTO>> ObtenerVendedores(UsuarioReponseDTO usuarioActual);
     }
 }

@@ -93,7 +93,7 @@ namespace SegRutContAsis.Business.Services
 
                 _context.UsuarioRol.Add(new UsuarioRol
                 {
-                    usrID = usuario.usrId,
+                    usrId = usuario.usrId,
                     rolId = rol.rolId
                 });
 
@@ -243,7 +243,7 @@ namespace SegRutContAsis.Business.Services
 
                 _context.UsuarioRol.Add(new UsuarioRol
                 {
-                    usrID = usuario.usrId,
+                    usrId = usuario.usrId,
                     rolId = rol.rolId
                 });
 
@@ -291,43 +291,118 @@ namespace SegRutContAsis.Business.Services
             return true;
         }
 
-        // OBTENER TODOS LOS VENDEDORES ACTIVOS
-        public async Task<List<UsuarioReponseDTO>> ObtenerVendedores()
+        // OBTENER VENDEDORES FILTRADOS SEGÚN ROL
+        public async Task<List<UsuarioReponseDTO>> ObtenerVendedores(UsuarioReponseDTO usuarioActual)
         {
-            return await _context.Vendedor
-                .Include(v => v.Usuario)
-                    .ThenInclude(u => u.UsuarioRoles)
-                        .ThenInclude(ur => ur.Rol)
-                .Where(v => v.venEstadoDel)
-                .Select(v => new UsuarioReponseDTO
+            // ADMINISTRADOR: Retorna todos los vendedores
+            if (usuarioActual.EsAdministrador)
+            {
+                return await _context.Vendedor
+                    .Include(v => v.Usuario)
+                        .ThenInclude(u => u.UsuarioRoles)
+                            .ThenInclude(ur => ur.Rol)
+                    .Where(v => v.venEstadoDel)
+                    .Select(v => new UsuarioReponseDTO
+                    {
+                        usrId = v.Usuario.usrId,
+                        usrNombreCompleto = v.Usuario.usrNombreCompleto,
+                        usrCorreo = v.Usuario.usrCorreo,
+                        Roles = v.Usuario.UsuarioRoles
+                            .Where(ur => ur.Rol != null)
+                            .Select(ur => ur.Rol.rolNombre)
+                            .ToList(),
+                        VendedorId = v.venId
+                    })
+                    .ToListAsync();
+            }
+
+            // SUPERVISOR: Buscar supId usando usrId
+            if (usuarioActual.EsSupervisor)
+            {
+                var supervisor = await _context.Supervisor
+                    .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+                if (supervisor == null)
+                    return new List<UsuarioReponseDTO>();
+
+                int supId = supervisor.supId;
+
+                var vendedores = await _context.AsignacionSupervisorVendedor
+                    .Where(a => a.supId == supId && a.asvEstadoDel)
+                    .Include(a => a.Vendedor)
+                        .ThenInclude(v => v.Usuario)
+                            .ThenInclude(u => u.UsuarioRoles)
+                                .ThenInclude(ur => ur.Rol)
+                    .Select(a => a.Vendedor)
+                    .Where(v => v != null && v.venEstadoDel)
+                    .ToListAsync();
+
+                return vendedores.Select(v => new UsuarioReponseDTO
                 {
                     usrId = v.Usuario.usrId,
                     usrNombreCompleto = v.Usuario.usrNombreCompleto,
                     usrCorreo = v.Usuario.usrCorreo,
-                    Roles = v.Usuario.UsuarioRoles.Select(ur => ur.Rol.rolNombre).ToList(),
+                    Roles = v.Usuario.UsuarioRoles
+                        .Where(ur => ur.Rol != null)
+                        .Select(ur => ur.Rol.rolNombre)
+                        .ToList(),
                     VendedorId = v.venId
-                })
-                .ToListAsync();
+                }).ToList();
+            }
+
+            return new List<UsuarioReponseDTO>();
         }
 
-        // OBTENER TODOS LOS SUPERVISORES ACTIVOS
-        public async Task<List<UsuarioReponseDTO>> ObtenerSupervisores()
+
+        // OBTENER SUPERVISORES FILTRADOS SEGUN ROL 
+        public async Task<List<UsuarioReponseDTO>> ObtenerSupervisores(UsuarioReponseDTO usuarioActual)
         {
-            return await _context.Supervisor
-                .Include(s => s.Usuario)
-                    .ThenInclude(u => u.UsuarioRoles)
-                        .ThenInclude(ur => ur.Rol)
-                .Where(s => s.supEstadoDel)
-                .Select(s => new UsuarioReponseDTO
+            if (usuarioActual.EsAdministrador)
+            {
+                // ADMINISTRADOR: Todos los supervisores
+                return await _context.Supervisor
+                    .Include(s => s.Usuario)
+                        .ThenInclude(u => u.UsuarioRoles)
+                    .Where(s => s.supEstadoDel)
+                    .Select(s => new UsuarioReponseDTO
+                    {
+                        usrId = s.Usuario.usrId,
+                        usrNombreCompleto = s.Usuario.usrNombreCompleto,
+                        usrCorreo = s.Usuario.usrCorreo,
+                        Roles = s.Usuario.UsuarioRoles.Select(ur => ur.Rol!.rolNombre).ToList(),
+                        SupervisorId = s.supId
+                    })
+                    .ToListAsync();
+            }
+
+            if (usuarioActual.EsSupervisor)
+            {
+                // SUPERVISOR: solo su propio registro según usrId
+                var supervisor = await _context.Supervisor
+                    .Include(s => s.Usuario)
+                        .ThenInclude(u => u.UsuarioRoles)
+                    .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+                if (supervisor != null)
                 {
-                    usrId = s.Usuario.usrId,
-                    usrNombreCompleto = s.Usuario.usrNombreCompleto,
-                    usrCorreo = s.Usuario.usrCorreo,
-                    Roles = s.Usuario.UsuarioRoles.Select(ur => ur.Rol.rolNombre).ToList(),
-                    SupervisorId = s.supId
-                })
-                .ToListAsync();
+                    return new List<UsuarioReponseDTO>
+            {
+                new UsuarioReponseDTO
+                {
+                    usrId = supervisor.Usuario!.usrId,
+                    usrNombreCompleto = supervisor.Usuario.usrNombreCompleto,
+                    usrCorreo = supervisor.Usuario.usrCorreo,
+                    Roles = supervisor.Usuario.UsuarioRoles.Select(ur => ur.Rol!.rolNombre).ToList(),
+                    SupervisorId = supervisor.supId
+                }
+            };
+                }
+            }
+
+            return new List<UsuarioReponseDTO>();
         }
+
+
 
         // HASH DE CONTRASEÑA
         private string HashPassword(string password)

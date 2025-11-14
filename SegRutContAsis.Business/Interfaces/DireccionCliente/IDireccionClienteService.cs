@@ -1,5 +1,6 @@
 ﻿using SegRutContAsis.Business.DTO.Request.DireccionCliente;
 using SegRutContAsis.Business.DTO.Response.DireccionCliente;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace SegRutContAsis.Business.Interfaces.DireccionCliente
         Task<bool> DesactivarDireccion(int id);
         Task<DireccionClienteResponseDTO?> ObtenerPorId(int id);
         Task<List<DireccionClienteResponseDTO>> ObtenerPorCliente(int clId);
-        Task<List<DireccionClienteResponseDTO>> ObtenerTodas();
+        Task<List<DireccionClienteResponseDTO>> ObtenerTodas(UsuarioReponseDTO usuarioActual);
+
     }
 }

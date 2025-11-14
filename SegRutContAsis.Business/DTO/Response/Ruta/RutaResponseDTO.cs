@@ -17,6 +17,7 @@ namespace SegRutContAsis.Business.DTO.Response.Ruta
 
         // Datos adicionales
         public string? NombreVendedor { get; set; }
+        public string? NombreSupervisor { get; set; }
     }
 }
 
