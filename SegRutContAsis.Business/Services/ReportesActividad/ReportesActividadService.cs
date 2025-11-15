@@ -29,13 +29,32 @@ namespace SegRutContAsis.Business.Services.Reporte
         public async Task<ReporteActividadResponseDTO> GenerarReporteDiarioAsistenciasAsync(ReporteActividadRequestDTO request)
         {
             var fecha = request.FechaInicio ?? DateTime.Today;
+            var fechaInicioDelDia = fecha.Date; 
+            var fechaFinDelDia = fecha.Date.AddDays(1); 
 
-            var asistencias = await _context.Reportes
-                .Include(r => r.Vendedor)
-                .Where(r => r.repTipoActividad == "Asistencia"
-                            && r.repFecha.Date == fecha.Date
-                            && r.repEstadoDel == true)
-                .ToListAsync();
+            var query = _context.Reportes
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario) 
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario) 
+                .Include(r => r.Asistencia) 
+                .Where(r =>
+                        r.repTipoActividad == "Asistencia"
+                        && r.repEstadoDel == true
+                        && r.repFechaCreacion >= fechaInicioDelDia
+                        && r.repFechaCreacion < fechaFinDelDia);
+
+            if (request.VendedorId.HasValue && request.VendedorId.Value > 0)
+            {
+                query = query.Where(r => r.venId == request.VendedorId.Value);
+            }
+            else if (request.SupervisorId.HasValue && request.SupervisorId.Value > 0)
+            {
+                query = query.Where(r => r.supId == request.SupervisorId.Value);
+            }
+
+            var asistencias = await query.ToListAsync();
+
+            var nombreVendedor = asistencias.FirstOrDefault(a => a.venId == request.VendedorId)?.Vendedor?.Usuario?.usrNombreCompleto;
+            var nombreSupervisor = asistencias.FirstOrDefault(a => a.supId == request.SupervisorId)?.Supervisor?.Usuario?.usrNombreCompleto;
 
             var response = new ReporteActividadResponseDTO
             {
@@ -44,6 +63,10 @@ namespace SegRutContAsis.Business.Services.Reporte
                 Subtitulo = $"Fecha: {fecha:dd/MM/yyyy}",
                 GeneradoPor = request.NombreUsuarioGenera ?? "Sistema",
                 FechaGeneracion = DateTime.Now,
+
+                NombreSupervisor = nombreSupervisor,
+                NombreVendedor = nombreVendedor,
+
                 Detalles = asistencias.Select(a => new DetalleActividadDTO
                 {
                     Fecha = a.repFecha,
@@ -51,6 +74,9 @@ namespace SegRutContAsis.Business.Services.Reporte
                     Estado = "Presente",
                     Latitud = a.repLatitud,
                     Longitud = a.repLongitud,
+                    HoraEntrada = a.Asistencia?.asiHoraEntrada?.TimeOfDay,
+                    HoraSalida = a.Asistencia?.asiHoraSalida?.TimeOfDay,
+                    Cliente = a.Cliente?.clNombreCompleto,
                 }).ToList(),
                 TotalAsistencias = asistencias.Count
             };
@@ -58,20 +84,32 @@ namespace SegRutContAsis.Business.Services.Reporte
             return response;
         }
 
-        // Reporte semanal/mensual de asistencia
         public async Task<ReporteActividadResponseDTO> GenerarReporteAsistenciaPeriodoAsync(ReporteActividadRequestDTO request)
         {
             var inicio = request.FechaInicio ?? DateTime.Today.AddDays(-7);
             var fin = request.FechaFin ?? DateTime.Today;
 
-            var asistencias = await _context.Reportes
-                .Include(r => r.Vendedor)
+            var query = _context.Reportes
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                .Include(r => r.Asistencia)
                 .Where(r => r.repTipoActividad == "Asistencia"
-                            && r.repFecha >= inicio
-                            && r.repFecha <= fin
-                            && r.repEstadoDel == true)
-                .OrderBy(r => r.repFecha)
-                .ToListAsync();
+                            && r.repEstadoDel == true
+                            && r.repFecha >= inicio && r.repFecha <= fin);
+
+            if (request.VendedorId.HasValue && request.VendedorId.Value > 0)
+            {
+                query = query.Where(r => r.venId == request.VendedorId.Value);
+            }
+            else if (request.SupervisorId.HasValue && request.SupervisorId.Value > 0)
+            {
+                query = query.Where(r => r.supId == request.SupervisorId.Value);
+            }
+
+            var asistencias = await query.OrderBy(r => r.repFecha).ToListAsync();
+
+            var nombreVendedor = asistencias.FirstOrDefault(a => a.venId == request.VendedorId)?.Vendedor?.Usuario?.usrNombreCompleto;
+            var nombreSupervisor = asistencias.FirstOrDefault(a => a.supId == request.SupervisorId)?.Supervisor?.Usuario?.usrNombreCompleto;
 
             var response = new ReporteActividadResponseDTO
             {
@@ -80,11 +118,18 @@ namespace SegRutContAsis.Business.Services.Reporte
                 Subtitulo = $"Desde {inicio:dd/MM/yyyy} hasta {fin:dd/MM/yyyy}",
                 GeneradoPor = request.NombreUsuarioGenera ?? "Sistema",
                 FechaGeneracion = DateTime.Now,
+                NombreSupervisor = nombreSupervisor,
+                NombreVendedor = nombreVendedor,
                 Detalles = asistencias.Select(a => new DetalleActividadDTO
                 {
                     Fecha = a.repFecha,
                     TipoActividad = a.repTipoActividad,
                     Estado = "Presente",
+                    HoraEntrada = a.Asistencia?.asiHoraEntrada?.TimeOfDay,
+                    HoraSalida = a.Asistencia?.asiHoraSalida?.TimeOfDay,
+                    Latitud = a.repLatitud,
+                    Longitud = a.repLongitud,
+                    Cliente = a.Cliente?.clNombreCompleto,
                 }).ToList(),
                 TotalAsistencias = asistencias.Count
             };
@@ -92,19 +137,29 @@ namespace SegRutContAsis.Business.Services.Reporte
             return response;
         }
 
+
         // Informe de control de campo (asistencia + visitas + ubicación)
         public async Task<ReporteActividadResponseDTO> GenerarInformeControlCampoAsync(ReporteActividadRequestDTO request)
         {
             var inicio = request.FechaInicio ?? DateTime.Today;
             var fin = request.FechaFin ?? DateTime.Today;
 
-            var actividades = await _context.Reportes
-                .Where(r => (r.repTipoActividad == "Asistencia" || r.repTipoActividad == "Visita")
-                            && r.repFecha >= inicio && r.repFecha <= fin
-                            && r.repEstadoDel == true)
-                .Include(r => r.Vendedor)
+            var query = _context.Reportes
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                 .Include(r => r.Cliente)
-                .ToListAsync();
+                .Include(r => r.Asistencia)
+                .Where(r => (r.repTipoActividad == "Asistencia" || r.repTipoActividad == "Visita")
+                            && r.repEstadoDel == true
+                            && r.repFecha >= inicio && r.repFecha <= fin);
+
+            if (request.VendedorId.HasValue && request.VendedorId.Value > 0)
+                query = query.Where(r => r.venId == request.VendedorId.Value);
+            if (request.SupervisorId.HasValue && request.SupervisorId.Value > 0)
+                query = query.Where(r => r.supId == request.SupervisorId.Value);
+
+
+            var actividades = await query.ToListAsync();
 
             var response = new ReporteActividadResponseDTO
             {
@@ -120,7 +175,9 @@ namespace SegRutContAsis.Business.Services.Reporte
                     Cliente = a.Cliente?.clNombreCompleto,
                     Latitud = a.repLatitud,
                     Longitud = a.repLongitud,
-                    Estado = a.repTipoActividad == "Asistencia" ? "Presente" : "Visita Realizada"
+                    Estado = a.repTipoActividad == "Asistencia" ? "Presente" : "Visita Realizada",
+                    HoraEntrada = a.Asistencia?.asiHoraEntrada?.TimeOfDay,
+                    HoraSalida = a.Asistencia?.asiHoraSalida?.TimeOfDay,
                 }).ToList(),
                 TotalAsistencias = actividades.Count(x => x.repTipoActividad == "Asistencia"),
                 TotalVisitas = actividades.Count(x => x.repTipoActividad == "Visita")
@@ -135,14 +192,21 @@ namespace SegRutContAsis.Business.Services.Reporte
             var inicio = request.FechaInicio ?? DateTime.Today.AddDays(-7);
             var fin = request.FechaFin ?? DateTime.Today;
 
-            var visitas = await _context.Reportes
+            var query = _context.Reportes
                 .Include(r => r.Zona)
                 .Include(r => r.Cliente)
                 .Where(r => r.repTipoActividad == "Visita"
-                            && r.repFecha >= inicio && r.repFecha <= fin
-                            && (request.ZonaId == null || r.zonId == request.ZonaId)
-                            && r.repEstadoDel == true)
-                .ToListAsync();
+                            && r.repEstadoDel == true
+                            && r.repFecha >= inicio && r.repFecha <= fin);
+
+            if (request.ZonaId.HasValue)
+                query = query.Where(r => r.zonId == request.ZonaId.Value);
+            if (request.VendedorId.HasValue)
+                query = query.Where(r => r.venId == request.VendedorId.Value);
+            if (request.SupervisorId.HasValue)
+                query = query.Where(r => r.supId == request.SupervisorId.Value);
+
+            var visitas = await query.ToListAsync();
 
             var response = new ReporteActividadResponseDTO
             {
@@ -156,6 +220,9 @@ namespace SegRutContAsis.Business.Services.Reporte
                     Fecha = v.repFecha,
                     TipoActividad = v.repTipoActividad,
                     Cliente = v.Cliente?.clNombreCompleto,
+                    Zona = v.Zona?.zonNombre!,
+                    Latitud = v.repLatitud,
+                    Longitud = v.repLongitud,
                     Estado = "Realizada"
                 }).ToList(),
                 TotalVisitas = visitas.Count
@@ -170,14 +237,19 @@ namespace SegRutContAsis.Business.Services.Reporte
             var inicio = request.FechaInicio ?? DateTime.Today;
             var fin = request.FechaFin ?? DateTime.Today;
 
-            var visitas = await _context.Reportes
-                .Include(r => r.Vendedor)
+            var query = _context.Reportes
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
                 .Include(r => r.Cliente)
                 .Where(r => r.repTipoActividad == "Visita"
-                            && r.repFecha >= inicio && r.repFecha <= fin
-                            && (request.VendedorId == null || r.venId == request.VendedorId)
-                            && r.repEstadoDel == true)
-                .ToListAsync();
+                            && r.repEstadoDel == true
+                            && r.repFecha >= inicio && r.repFecha <= fin);
+
+            if (request.VendedorId.HasValue)
+                query = query.Where(r => r.venId == request.VendedorId.Value);
+            if (request.SupervisorId.HasValue)
+                query = query.Where(r => r.supId == request.SupervisorId.Value);
+
+            var visitas = await query.ToListAsync();
 
             var response = new ReporteActividadResponseDTO
             {
@@ -191,6 +263,8 @@ namespace SegRutContAsis.Business.Services.Reporte
                     Fecha = v.repFecha,
                     TipoActividad = v.repTipoActividad,
                     Cliente = v.Cliente?.clNombreCompleto,
+                    Latitud = v.repLatitud,
+                    Longitud = v.repLongitud,
                     Estado = "Realizada"
                 }).ToList(),
                 TotalVisitas = visitas.Count

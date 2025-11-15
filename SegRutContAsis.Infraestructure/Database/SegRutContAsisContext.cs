@@ -28,6 +28,7 @@ public class SegRutContAsisContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
         // ---------------- Usuario ----------------
         modelBuilder.Entity<Usuario>(entity =>
         {
@@ -390,7 +391,13 @@ public class SegRutContAsisContext : DbContext
                 .OnDelete(DeleteBehavior.NoAction);
         });
 
-
+        // triggers
+        modelBuilder.Entity<Asistencia>()
+            .ToTable(tb => tb.UseSqlOutputClause(false));
+        modelBuilder.Entity<MarcarLlegadaVisita>()
+            .ToTable(tb => tb.UseSqlOutputClause(false));
+        modelBuilder.Entity<Evidencia>()
+            .ToTable(tb => tb.UseSqlOutputClause(false));
 
 
         base.OnModelCreating(modelBuilder);

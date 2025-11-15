@@ -53,6 +53,7 @@ namespace SegRutContAsis.Business.DTO.Response.ReporteActividadResponseDTO
         public decimal? Longitud { get; set; }
 
         // Estado general
-        public string? Estado { get; set; }   
+        public string? Estado { get; set; } 
+        public string Zona { get; set; }
     }
 }
