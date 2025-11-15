@@ -44,6 +44,20 @@ namespace SegRutContAsis.Api.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+        [HttpGet("obtenerAsistencia")]
+        public async Task<IActionResult> ObtenerAsistencias()
+        {
+            try
+            {
+                var result = await _asistenciaService.ObtenerAsistencias();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
     }
 
 }

@@ -14,5 +14,8 @@ namespace SegRutContAsis.Business.DTO.Response.Asistencia
         public DateTime? asiHoraSalida { get; set; }
         public decimal asiLatitud { get; set; }
         public decimal asiLongitud { get; set; }
+
+        // Datos adicionales
+        public string? nombreVendedor { get; set; }
     }
 }

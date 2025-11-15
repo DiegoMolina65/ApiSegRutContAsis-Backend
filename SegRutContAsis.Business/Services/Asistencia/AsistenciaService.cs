@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.Asistencia;
 using SegRutContAsis.Business.DTO.Response.Asistencia;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using SegRutContAsis.Business.Interfaces.Asistencia;
 using SegRutContAsis.Domain.Entities;
 using System;
@@ -80,5 +81,27 @@ namespace SegRutContAsis.Business.Services
                 asiLongitud = asistencia.asiLongitud
             };
         }
+
+        public async Task<List<AsistenciaResponseDTO>> ObtenerAsistencias()
+        {
+            var asistencias = await _context.Asistencia
+                .Include(a => a.Vendedor) 
+                    .ThenInclude(v => v.Usuario)
+                .Select(a => new AsistenciaResponseDTO
+                {
+                    asiId = a.asiId,
+                    venId = a.venId,
+                    asiHoraEntrada = a.asiHoraEntrada,
+                    asiHoraSalida = a.asiHoraSalida,
+                    asiLatitud = a.asiLatitud,
+                    asiLongitud = a.asiLongitud,
+                    nombreVendedor = a.Vendedor.Usuario.usrNombreCompleto
+                })
+                .ToListAsync();
+
+            return asistencias;
+        }
+
+
     }
 }

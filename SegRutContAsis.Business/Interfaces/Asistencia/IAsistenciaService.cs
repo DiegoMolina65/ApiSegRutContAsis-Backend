@@ -1,5 +1,6 @@
 ﻿using SegRutContAsis.Business.DTO.Request.Asistencia;
 using SegRutContAsis.Business.DTO.Response.Asistencia;
+using SegRutContAsis.Business.DTO.Response.Usuario;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,6 @@ namespace SegRutContAsis.Business.Interfaces.Asistencia
     {
         Task<AsistenciaResponseDTO> RegistrarEntrada(AsistenciaRequestDTO dto);
         Task<AsistenciaResponseDTO> RegistrarSalida(int venId);
+        Task<List<AsistenciaResponseDTO>> ObtenerAsistencias();
     }
 }
