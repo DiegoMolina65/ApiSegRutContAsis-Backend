@@ -13,5 +13,6 @@ namespace SegRutContAsis.Business.DTO.Response.SeguimientoVendedor
         public DateTime segFechaCreacion { get; set; }
         public decimal segLatitud {  get; set; }
         public decimal segLongitud { get; set; }
+        public string? VendedorNombre { get; set; }
     }
 }

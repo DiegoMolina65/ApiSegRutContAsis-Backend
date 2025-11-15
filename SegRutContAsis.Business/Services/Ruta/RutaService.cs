@@ -138,7 +138,7 @@ namespace SegRutContAsis.Business.Services
                         .ToListAsync();
                 }
 
-                // VENDEDOR: Solo sus propias rutas
+                // VENDEDOR: Solo sus propias rutas y recientes (último mes)
                 if (usuarioActual.EsVendedor)
                 {
                     var vendedor = await _context.Vendedor
@@ -149,8 +149,11 @@ namespace SegRutContAsis.Business.Services
 
                     int venId = vendedor.venId;
 
+                    // Fecha límite: hace 1 mes
+                    DateTime fechaLimite = DateTime.Today.AddMonths(-1);
+
                     return await _context.Ruta
-                        .Where(r => r.VendedorId == venId && r.rutEstadoDel)
+                        .Where(r => r.VendedorId == venId && r.rutEstadoDel && r.rutFechaEjecucion >= fechaLimite)
                         .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
                         .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                         .Select(r => new RutaResponseDTO

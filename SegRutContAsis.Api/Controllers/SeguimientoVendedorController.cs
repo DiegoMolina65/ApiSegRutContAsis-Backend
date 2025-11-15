@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SegRutContAsis.Business.DTO.Request.SeguimientoVendedor;
+using SegRutContAsis.Business.Interfaces.Authentication;
+using SegRutContAsis.Business.Interfaces.MarcarLlegadaVisita;
 using SegRutContAsis.Business.Interfaces.SeguimientoVendedor;
 
 namespace SegRutContAsis.Api.Controllers
@@ -11,9 +13,11 @@ namespace SegRutContAsis.Api.Controllers
     public class SeguimientoVendedorController : ControllerBase
     {
         private readonly ISeguimientoVendedorService _seguimientoVendedorService;
-        public SeguimientoVendedorController(ISeguimientoVendedorService seguimientoVendedorService)
+        private readonly IUsuarioService _usuarioService;
+        public SeguimientoVendedorController(ISeguimientoVendedorService seguimientoVendedorService, IUsuarioService usuarioService)
         {
             _seguimientoVendedorService = seguimientoVendedorService;
+            _usuarioService = usuarioService;
 
         }
 
@@ -36,7 +40,12 @@ namespace SegRutContAsis.Api.Controllers
         {
             try
             {
-                var result = await _seguimientoVendedorService.ObtenerTodosSeguimientosVendedores();
+                var userIdClaim = User.FindFirst("id")?.Value;
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Token inválido");
+
+                var usuarioActual = await _usuarioService.ObtenerUsuarioId(userId);
+                var result = await _seguimientoVendedorService.ObtenerTodosSeguimientosVendedores(usuarioActual);
                 return Ok(result);
             }
             catch (Exception ex)
