@@ -67,6 +67,13 @@ namespace SegRutContAsis.Business.Services
                 mlvLongitud = m.mlvLongitud,
                 mlvEstadoDel = m.mlvEstadoDel,
                 mlvFechaCreacion = m.mlvFechaCreacion,
+                NombreVendedor = m.Visita?.Ruta?.Vendedor?.Usuario?.usrNombreCompleto,
+                NombreSucursalCliente = m.Visita?.DireccionCliente?.dirClNombreSucursal,
+                SucursalLatitud = m.Visita?.DireccionCliente?.dirClLatitud,
+                SucursalLongitud = m.Visita?.DireccionCliente?.dirClLongitud,
+                NombreCliente = m.Visita?.DireccionCliente?.Cliente?.clNombreCompleto,
+                UsuarioLogVendedor = m.Visita?.Ruta?.Vendedor?.Usuario?.usrUsuarioLog,
+                TelefonoVendedor = m.Visita?.Ruta?.Vendedor?.Usuario?.usrTelefono
             }).ToList();
 
             return resultado;

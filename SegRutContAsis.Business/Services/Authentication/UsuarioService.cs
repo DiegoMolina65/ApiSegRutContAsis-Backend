@@ -350,6 +350,34 @@ namespace SegRutContAsis.Business.Services
                 }).ToList();
             }
 
+            // VENDEDOR: Retorna solo su propio nombre/datos como vendedor
+            if (usuarioActual.EsVendedor)
+            {
+                var vendedor = await _context.Vendedor
+                    .Include(v => v.Usuario)
+                        .ThenInclude(u => u.UsuarioRoles)
+                            .ThenInclude(ur => ur.Rol)
+                    .FirstOrDefaultAsync(v => v.Usuario.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+                if (vendedor != null)
+                {
+                    var vendedorDTO = new UsuarioReponseDTO
+                    {
+                        usrId = vendedor.Usuario.usrId,
+                        usrNombreCompleto = vendedor.Usuario.usrNombreCompleto,
+                        usrCorreo = vendedor.Usuario.usrCorreo,
+                        Roles = vendedor.Usuario.UsuarioRoles
+                            .Where(ur => ur.Rol != null)
+                            .Select(ur => ur.Rol.rolNombre)
+                            .ToList(),
+                        VendedorId = vendedor.venId
+                    };
+
+                    return new List<UsuarioReponseDTO> { vendedorDTO };
+                }
+
+                return new List<UsuarioReponseDTO>();
+            }
             return new List<UsuarioReponseDTO>();
         }
 
@@ -363,13 +391,15 @@ namespace SegRutContAsis.Business.Services
                 return await _context.Supervisor
                     .Include(s => s.Usuario)
                         .ThenInclude(u => u.UsuarioRoles)
+                            .ThenInclude(ur => ur.Rol) // Asegurando que el Rol esté incluido
                     .Where(s => s.supEstadoDel)
                     .Select(s => new UsuarioReponseDTO
                     {
                         usrId = s.Usuario.usrId,
                         usrNombreCompleto = s.Usuario.usrNombreCompleto,
                         usrCorreo = s.Usuario.usrCorreo,
-                        Roles = s.Usuario.UsuarioRoles.Select(ur => ur.Rol!.rolNombre).ToList(),
+                        // Manejando posibles nulos en Rol
+                        Roles = s.Usuario.UsuarioRoles.Where(ur => ur.Rol != null).Select(ur => ur.Rol!.rolNombre).ToList(),
                         SupervisorId = s.supId
                     })
                     .ToListAsync();
@@ -381,6 +411,7 @@ namespace SegRutContAsis.Business.Services
                 var supervisor = await _context.Supervisor
                     .Include(s => s.Usuario)
                         .ThenInclude(u => u.UsuarioRoles)
+                            .ThenInclude(ur => ur.Rol)
                     .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
 
                 if (supervisor != null)
@@ -392,13 +423,44 @@ namespace SegRutContAsis.Business.Services
                     usrId = supervisor.Usuario!.usrId,
                     usrNombreCompleto = supervisor.Usuario.usrNombreCompleto,
                     usrCorreo = supervisor.Usuario.usrCorreo,
-                    Roles = supervisor.Usuario.UsuarioRoles.Select(ur => ur.Rol!.rolNombre).ToList(),
+                    Roles = supervisor.Usuario.UsuarioRoles.Where(ur => ur.Rol != null).Select(ur => ur.Rol!.rolNombre).ToList(),
                     SupervisorId = supervisor.supId
                 }
             };
                 }
             }
 
+            // VENDEDOR: Los supervisores que tiene asignados
+            if (usuarioActual.EsVendedor)
+            {
+                var vendedor = await _context.Vendedor
+                    .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+                if (vendedor == null)
+                {
+                    return new List<UsuarioReponseDTO>();
+                }
+
+                int venId = vendedor.venId;
+
+                return await _context.AsignacionSupervisorVendedor
+                    .Where(a => a.venId == venId && a.asvEstadoDel)
+                    .Include(a => a.Supervisor)
+                        .ThenInclude(s => s.Usuario)
+                            .ThenInclude(u => u.UsuarioRoles)
+                                .ThenInclude(ur => ur.Rol)
+                    .Select(a => a.Supervisor!) 
+                    .Where(s => s != null && s.supEstadoDel) 
+                    .Select(s => new UsuarioReponseDTO
+                    {
+                        usrId = s.Usuario.usrId,
+                        usrNombreCompleto = s.Usuario.usrNombreCompleto,
+                        usrCorreo = s.Usuario.usrCorreo,
+                        Roles = s.Usuario.UsuarioRoles.Where(ur => ur.Rol != null).Select(ur => ur.Rol!.rolNombre).ToList(),
+                        SupervisorId = s.supId
+                    })
+                    .ToListAsync();
+            }
             return new List<UsuarioReponseDTO>();
         }
 
