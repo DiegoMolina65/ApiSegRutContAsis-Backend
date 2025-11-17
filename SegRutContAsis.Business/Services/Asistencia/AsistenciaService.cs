@@ -152,9 +152,14 @@ namespace SegRutContAsis.Business.Services
 
                 int venId = vendedor.venId;
 
+                // Fecha límite
+                DateTime fechaLimite = DateTime.Now.AddDays(-30);
+
                 return await _context.Asistencia
                     .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
-                    .Where(a => a.venId == venId)
+                    .Where(a => a.venId == venId
+                                && a.asiHoraEntrada != null
+                                && a.asiHoraEntrada >= fechaLimite)
                     .Select(a => new AsistenciaResponseDTO
                     {
                         asiId = a.asiId,
