@@ -11,7 +11,7 @@ namespace SegRutContAsis.Business.Interfaces.SeguimientoVendedor
 {
     public interface ISeguimientoVendedorService
     {
-        Task<SeguimientoVendedorResponseDTO> CrearSeguimientoVendedor(SeguimientoVendedorRequestDTO dto);
+        Task<SeguimientoVendedorResponseDTO> CrearSeguimientoVendedor(SeguimientoVendedorRequestDTO dto, UsuarioReponseDTO usuarioActual);
         Task<List<SeguimientoVendedorResponseDTO>> ObtenerTodosSeguimientosVendedores(UsuarioReponseDTO usuarioActual);
         Task<List<SeguimientoVendedorResponseDTO>> ObtenerSeguimientosDeUnVendedor(int venId);
 

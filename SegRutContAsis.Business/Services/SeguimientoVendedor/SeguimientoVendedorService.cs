@@ -21,15 +21,20 @@ namespace SegRutContAsis.Business.Services
         }
 
         // Crear Seguimiento vendedor
-        public async Task<SeguimientoVendedorResponseDTO> CrearSeguimientoVendedor(SeguimientoVendedorRequestDTO dto)
+        public async Task<SeguimientoVendedorResponseDTO> CrearSeguimientoVendedor(
+            SeguimientoVendedorRequestDTO dto, UsuarioReponseDTO usuarioActual)
         {
-            var vendedor = await _context.Vendedor.FindAsync(dto.venId);
+            var vendedor = await _context.Vendedor
+                .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
             if (vendedor == null)
-                throw new Exception("Vendedor no encontrado");
+                throw new Exception("El usuario logueado no está asignado como vendedor.");
+
+            int venId = vendedor.venId;
 
             var nuevo = new SeguimientoVendedor
             {
-                venId = dto.venId,
+                venId = venId,
                 segLatitud = dto.segLatitud,
                 segLongitud = dto.segLongitud,
                 segFechaCreacion = DateTime.UtcNow

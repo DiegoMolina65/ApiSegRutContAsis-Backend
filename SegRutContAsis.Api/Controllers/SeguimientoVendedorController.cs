@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.SeguimientoVendedor;
 using SegRutContAsis.Business.Interfaces.Authentication;
 using SegRutContAsis.Business.Interfaces.MarcarLlegadaVisita;
@@ -26,7 +27,13 @@ namespace SegRutContAsis.Api.Controllers
         {
             try
             {
-                var result = await _seguimientoVendedorService.CrearSeguimientoVendedor(dto);
+                var userIdClaim = User.FindFirst("id")?.Value;
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized("Token inválido");
+
+                var usuarioActual = await _usuarioService.ObtenerUsuarioId(userId);
+                var result = await _seguimientoVendedorService.CrearSeguimientoVendedor(dto, usuarioActual);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -34,6 +41,8 @@ namespace SegRutContAsis.Api.Controllers
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+
+
 
         [HttpGet("obtenerTodosSeguimientosVendedores")]
         public async Task<IActionResult> ObtenerTodosSeguimientosVendedores()
