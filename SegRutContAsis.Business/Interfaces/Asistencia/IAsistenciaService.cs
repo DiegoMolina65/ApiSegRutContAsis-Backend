@@ -13,6 +13,6 @@ namespace SegRutContAsis.Business.Interfaces.Asistencia
     {
         Task<AsistenciaResponseDTO> RegistrarEntrada(AsistenciaRequestDTO dto);
         Task<AsistenciaResponseDTO> RegistrarSalida(int venId);
-        Task<List<AsistenciaResponseDTO>> ObtenerAsistencias();
+        Task<List<AsistenciaResponseDTO>> ObtenerAsistencias(UsuarioReponseDTO usuarioActual);
     }
 }

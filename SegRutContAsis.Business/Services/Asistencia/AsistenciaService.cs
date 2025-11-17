@@ -82,25 +82,95 @@ namespace SegRutContAsis.Business.Services
             };
         }
 
-        public async Task<List<AsistenciaResponseDTO>> ObtenerAsistencias()
+        public async Task<List<AsistenciaResponseDTO>> ObtenerAsistencias(UsuarioReponseDTO usuarioActual)
         {
-            var asistencias = await _context.Asistencia
-                .Include(a => a.Vendedor) 
-                    .ThenInclude(v => v.Usuario)
-                .Select(a => new AsistenciaResponseDTO
-                {
-                    asiId = a.asiId,
-                    venId = a.venId,
-                    asiHoraEntrada = a.asiHoraEntrada,
-                    asiHoraSalida = a.asiHoraSalida,
-                    asiLatitud = a.asiLatitud,
-                    asiLongitud = a.asiLongitud,
-                    nombreVendedor = a.Vendedor.Usuario.usrNombreCompleto
-                })
-                .ToListAsync();
+            //  ADMINISTRADOR 
+            if (usuarioActual.EsAdministrador)
+            {
+                return await _context.Asistencia
+                    .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
+                    .Select(a => new AsistenciaResponseDTO
+                    {
+                        asiId = a.asiId,
+                        venId = a.venId,
+                        asiHoraEntrada = a.asiHoraEntrada,
+                        asiHoraSalida = a.asiHoraSalida,
+                        asiLatitud = a.asiLatitud,
+                        asiLongitud = a.asiLongitud,
+                        nombreVendedor = a.Vendedor.Usuario.usrNombreCompleto
+                    })
+                    .ToListAsync();
+            }
 
-            return asistencias;
+
+            //  SUPERVISOR 
+            if (usuarioActual.EsSupervisor)
+            {
+                // Obtener supervisor
+                var supervisor = await _context.Supervisor
+                    .FirstOrDefaultAsync(s => s.usrId == usuarioActual.usrId && s.supEstadoDel);
+
+                if (supervisor == null)
+                    return new List<AsistenciaResponseDTO>();
+
+                int supId = supervisor.supId;
+
+                // Vendedores asignados
+                var vendedoresIds = await _context.AsignacionSupervisorVendedor
+                    .Where(a => a.supId == supId && a.asvEstadoDel)
+                    .Select(a => a.venId)
+                    .ToListAsync();
+
+                if (!vendedoresIds.Any())
+                    return new List<AsistenciaResponseDTO>();
+
+                return await _context.Asistencia
+                    .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
+                    .Where(a => vendedoresIds.Contains(a.venId))
+                    .Select(a => new AsistenciaResponseDTO
+                    {
+                        asiId = a.asiId,
+                        venId = a.venId,
+                        asiHoraEntrada = a.asiHoraEntrada,
+                        asiHoraSalida = a.asiHoraSalida,
+                        asiLatitud = a.asiLatitud,
+                        asiLongitud = a.asiLongitud,
+                        nombreVendedor = a.Vendedor.Usuario.usrNombreCompleto
+                    })
+                    .ToListAsync();
+            }
+
+
+            //  VENDEDOR 
+            if (usuarioActual.EsVendedor)
+            {
+                var vendedor = await _context.Vendedor
+                    .FirstOrDefaultAsync(v => v.usrId == usuarioActual.usrId && v.venEstadoDel);
+
+                if (vendedor == null)
+                    return new List<AsistenciaResponseDTO>();
+
+                int venId = vendedor.venId;
+
+                return await _context.Asistencia
+                    .Include(a => a.Vendedor).ThenInclude(v => v.Usuario)
+                    .Where(a => a.venId == venId)
+                    .Select(a => new AsistenciaResponseDTO
+                    {
+                        asiId = a.asiId,
+                        venId = a.venId,
+                        asiHoraEntrada = a.asiHoraEntrada,
+                        asiHoraSalida = a.asiHoraSalida,
+                        asiLatitud = a.asiLatitud,
+                        asiLongitud = a.asiLongitud,
+                        nombreVendedor = a.Vendedor.Usuario.usrNombreCompleto
+                    })
+                    .ToListAsync();
+            }
+
+            return new List<AsistenciaResponseDTO>();
         }
+
 
 
     }
