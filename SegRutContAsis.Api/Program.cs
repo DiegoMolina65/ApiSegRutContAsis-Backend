@@ -19,13 +19,42 @@ using SegRutContAsis.Business.Interfaces.Zona;
 using SegRutContAsis.Business.Services;
 using SegRutContAsis.Business.Services.Reporte;
 using SegRutContAsis.Business.Services.Rol;
+using System.Globalization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var culture = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+
 // Add services to the container.
 
-builder.Services.AddControllers();
+// Configurar CORS con política nombrada solo desarrollo
+/*
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",    // tu front (http)
+                "https://localhost:5173"    // por si usas https en dev
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); 
+    });
+});
+*/
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Permite case-insensitive en nombres de propiedades JSON
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -75,6 +104,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// En produccion quitar
+//app.UseCors("AllowFrontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
