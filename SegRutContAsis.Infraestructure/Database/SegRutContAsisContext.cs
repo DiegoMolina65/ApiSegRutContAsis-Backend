@@ -24,6 +24,7 @@ public class SegRutContAsisContext : DbContext
     public DbSet<MarcarLlegadaVisita> MarcarLlegadaVisita { get; set; }
     public DbSet<AsignacionSupervisorVendedor> AsignacionSupervisorVendedor { get; set; }
     public DbSet<Reportes> Reportes { get; set; }
+    public DbSet<Notificacion> Notificacion { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -311,84 +312,89 @@ public class SegRutContAsisContext : DbContext
             entity.Property(r => r.eviId).HasColumnName("eviId");
             entity.Property(r => r.rutId).HasColumnName("rutId");
             entity.Property(r => r.zonId).HasColumnName("zonId");
-
             entity.Property(r => r.repFechaCreacion)
                 .HasColumnName("repFechaCreacion")
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("getdate()");
-
             entity.Property(r => r.repFecha)
                 .HasColumnName("repFecha")
                 .HasColumnType("date")
                 .IsRequired();
-
             entity.Property(r => r.repTipoActividad)
                 .HasColumnName("repTipoActividad")
                 .HasMaxLength(100)
                 .IsRequired();
-
             entity.Property(r => r.repDescripcion)
                 .HasColumnName("repDescripcion");
-
             entity.Property(r => r.repLatitud)
                 .HasColumnName("repLatitud")
                 .HasColumnType("decimal(10,8)");
-
             entity.Property(r => r.repLongitud)
                 .HasColumnName("repLongitud")
                 .HasColumnType("decimal(10,8)");
-
             entity.Property(r => r.repEstadoDel)
                 .HasColumnName("repEstadoDel")
                 .HasDefaultValue(true);
-
             entity.HasOne(r => r.Vendedor)
                 .WithMany()
                 .HasForeignKey(r => r.venId)
                 .HasConstraintName("FK_ReporteActividad_Vendedor")
                 .OnDelete(DeleteBehavior.Cascade);
-
             entity.HasOne(r => r.Supervisor)
                 .WithMany()
                 .HasForeignKey(r => r.supId)
                 .HasConstraintName("FK_ReporteActividad_Supervisor")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Cliente)
                 .WithMany()
                 .HasForeignKey(r => r.clId)
                 .HasConstraintName("FK_ReporteActividad_Cliente")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Visita)
                 .WithMany()
                 .HasForeignKey(r => r.visId)
                 .HasConstraintName("FK_ReporteActividad_Visita")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Asistencia)
                 .WithMany()
                 .HasForeignKey(r => r.asiId)
                 .HasConstraintName("FK_ReporteActividad_Asistencia")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Evidencia)
                 .WithMany()
                 .HasForeignKey(r => r.eviId)
                 .HasConstraintName("FK_ReporteActividad_Evidencia")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Ruta)
                 .WithMany()
                 .HasForeignKey(r => r.rutId)
                 .HasConstraintName("FK_ReporteActividad_Ruta")
                 .OnDelete(DeleteBehavior.NoAction);
-
             entity.HasOne(r => r.Zona)
                 .WithMany()
                 .HasForeignKey(r => r.zonId)
                 .HasConstraintName("FK_ReporteActividad_Zona")
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ---------------- Notificacion ----------------
+        modelBuilder.Entity<Notificacion>(entity =>
+        {
+            entity.ToTable("Notificacion");
+            entity.HasKey(n => n.notId);
+            entity.Property(n => n.notId).HasColumnName("notId");
+            entity.Property(n => n.notFechaCreacion).HasColumnName("notFechaCreacion").HasColumnType("datetime").HasDefaultValueSql("getdate()").IsRequired();
+            entity.Property(n => n.notTitulo).HasColumnName("notTitulo").HasMaxLength(255).IsRequired();
+            entity.Property(n => n.notMensaje).HasColumnName("notMensaje").HasColumnType("nvarchar(max)").IsRequired();
+            entity.Property(n => n.notTipo).HasColumnName("notTipo").HasMaxLength(50).IsRequired();
+            entity.Property(n => n.entidadId).HasColumnName("entidadId").IsRequired(false);
+            entity.Property(n => n.venId).HasColumnName("venId").IsRequired(false);
+            entity.Property(n => n.supId).HasColumnName("supId").IsRequired(false);
+            entity.Property(n => n.notEstadoDel).HasColumnName("notEstadoDel").HasDefaultValue(true).IsRequired();
+
+            entity.HasOne(n => n.Vendedor) .WithMany().HasForeignKey(n => n.venId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(n => n.Supervisor).WithMany().HasForeignKey(n => n.supId).OnDelete(DeleteBehavior.Restrict);
+
         });
 
         // triggers
@@ -397,6 +403,10 @@ public class SegRutContAsisContext : DbContext
         modelBuilder.Entity<MarcarLlegadaVisita>()
             .ToTable(tb => tb.UseSqlOutputClause(false));
         modelBuilder.Entity<Evidencia>()
+            .ToTable(tb => tb.UseSqlOutputClause(false));
+        modelBuilder.Entity<Ruta>()
+            .ToTable(tb => tb.UseSqlOutputClause(false));
+        modelBuilder.Entity<Visita>()
             .ToTable(tb => tb.UseSqlOutputClause(false));
 
 

@@ -1,61 +1,38 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.IdentityModel.Tokens;
-
 using QuestPDF.Infrastructure;
-
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
-
 using SegRutContAsis.Business.Interfaces.AsignacionSupervisorVendedor;
-
 using SegRutContAsis.Business.Interfaces.Asistencia;
-
 using SegRutContAsis.Business.Interfaces.Authentication;
-
 using SegRutContAsis.Business.Interfaces.Cliente;
-
 using SegRutContAsis.Business.Interfaces.DireccionCliente;
-
 using SegRutContAsis.Business.Interfaces.Evidencia;
-
 using SegRutContAsis.Business.Interfaces.MarcarLlegadaVisita;
-
+using SegRutContAsis.Business.Interfaces.Notificacion;
 using SegRutContAsis.Business.Interfaces.ReportesActividad;
-
 using SegRutContAsis.Business.Interfaces.Rol;
-
 using SegRutContAsis.Business.Interfaces.Ruta;
-
 using SegRutContAsis.Business.Interfaces.SeguimientoVendedor;
-
 using SegRutContAsis.Business.Interfaces.Visita;
-
 using SegRutContAsis.Business.Interfaces.Zona;
-
 using SegRutContAsis.Business.Services;
-
+using SegRutContAsis.Business.Services.Notificacion;
 using SegRutContAsis.Business.Services.Reporte;
-
 using SegRutContAsis.Business.Services.Rol;
-
 using System.Text;
  
 var builder = WebApplication.CreateBuilder(args);
  
 // Add services to the container.
- 
 // Configurar CORS con política nombrada solo desarrollo
  
 builder.Services.AddCors(options =>
 
 {
-
     options.AddPolicy("AllowFrontend", policy =>
-
     {
-
         policy.WithOrigins(
 
                 "http://localhost:5173",    
@@ -65,15 +42,10 @@ builder.Services.AddCors(options =>
                 "https://diego.dualbiz.net"
 
             )
-
             .AllowAnyHeader()
-
             .AllowAnyMethod()
-
             .AllowCredentials(); 
-
     });
-
 });
  
  
@@ -120,7 +92,8 @@ builder.Services.AddScoped<IMarcarLlegadaVisitaService,  MarcarLlegadaVisitaServ
 builder.Services.AddScoped<IAsignacionSupervisorVendedorService, AsignacionSupervisorVendedorService>();
 
 builder.Services.AddScoped<IReportesActividadService, ReporteActividadService>();
- 
+
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
  
 // Configuración PDF
 

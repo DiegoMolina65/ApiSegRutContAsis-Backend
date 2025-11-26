@@ -41,6 +41,7 @@ namespace SegRutContAsis.Api.Controllers
         }
 
         [HttpPost("registrarUsuario")]
+        [AllowAnonymous]
         public async Task<IActionResult> Registrar([FromBody] UsuarioRegistroRequestDTO dto)
         {
             try

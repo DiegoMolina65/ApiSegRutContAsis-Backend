@@ -23,6 +23,7 @@ namespace SegRutContAsis.Api.Controllers
         }
 
         [HttpPost("crearSeguimientoVendedor")]
+        [AllowAnonymous]
         public async Task<IActionResult> CrearSeguimientoVendedor([FromBody] SeguimientoVendedorRequestDTO dto)
         {
             try
