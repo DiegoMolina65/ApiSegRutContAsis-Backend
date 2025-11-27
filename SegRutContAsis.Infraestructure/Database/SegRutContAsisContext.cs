@@ -209,6 +209,7 @@ public class SegRutContAsisContext : DbContext
             entity.Property(e => e.visId).HasColumnName("visId");
             entity.Property(e => e.eviTipo).HasColumnName("eviTipo").HasMaxLength(255).IsRequired(false);
             entity.Property(e => e.eviObservaciones).HasColumnName("eviObservaciones").IsRequired(false);
+            entity.Property(e => e.EviArchivoPath).HasColumnName("eviArchivoPath").HasMaxLength(500).IsRequired(false);
             entity.HasOne(e => e.Visita).WithMany(v => v.Evidencias).HasForeignKey(e => e.visId).OnDelete(DeleteBehavior.Cascade);
         });
 

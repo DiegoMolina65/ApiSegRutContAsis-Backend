@@ -14,6 +14,9 @@ namespace SegRutContAsis.Domain.Entities
         public string? eviTipo { get; set; } = "";
         public string? eviObservaciones { get; set; } = "";
 
+        // Archivo PDF/Imagen
+        public string? EviArchivoPath { get; set; } = "";
+
         // Relaciones
         public Visita Visita { get; set; } = null!;
     }

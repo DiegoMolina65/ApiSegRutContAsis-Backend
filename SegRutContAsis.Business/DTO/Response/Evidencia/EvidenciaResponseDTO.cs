@@ -13,5 +13,6 @@ namespace SegRutContAsis.Business.DTO.Response.Evidencia
         public int VisitaId { get; set; }
         public string? eviTipo { get; set; }
         public string? eviObservaciones { get; set; }
+        public string? eviArchivoUrl { get; set; }
     }
 }

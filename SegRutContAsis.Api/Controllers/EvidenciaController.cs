@@ -18,7 +18,7 @@ namespace SegRutContAsis.Api.Controllers
         }
 
         [HttpPost("crearEvidencia")]
-        public async Task<IActionResult> CrearEvidencia([FromBody] EvidenciaRequestDTO dto)
+        public async Task<IActionResult> CrearEvidencia([FromForm] EvidenciaRequestDTO dto)
         {
             var e = await _service.CrearEvidencia(dto);
             return Ok(e);

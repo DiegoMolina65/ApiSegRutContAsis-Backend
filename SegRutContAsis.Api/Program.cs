@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using SegRutContAsis.Business.Interfaces.AsignacionClienteVendedor;
@@ -36,20 +37,25 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
 
                 "http://localhost:5173",    
-
                 "https://localhost:5173",
-
-                "https://diego.dualbiz.net"
+                "https://diego.dualbiz.net",
+                "*"
 
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); 
+            .AllowAnyOrigin();
     });
 });
  
  
 builder.Services.AddControllers();
+
+// Aumentar límite de tamaño para uploads grandes (form-data)
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB, ajusta según necesites
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
@@ -134,7 +140,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
  
 builder.Services.AddAuthorization();
- 
+builder.Services.AddHttpContextAccessor();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50 MB
+});
+
+
 var app = builder.Build();
  
 // En produccion cors
@@ -160,7 +173,18 @@ app.UseHttpsRedirection();
 // Estado 
 
 app.MapGet("/", () => "Corriendo...");
- 
+
+// Archivos estáticos (PDF/imagenes)
+app.UseStaticFiles();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")
+    ),
+    RequestPath = "/Uploads"
+});
+
 app.UseAuthentication();
 
 app.UseAuthorization();

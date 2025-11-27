@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using SegRutContAsis.Business.DTO.Request.Evidencia;
 using SegRutContAsis.Business.DTO.Response.Evidencia;
 using SegRutContAsis.Business.Interfaces.Evidencia;
@@ -14,10 +15,12 @@ namespace SegRutContAsis.Business.Services
     public class EvidenciaService : IEvidenciaService
     {
         private readonly SegRutContAsisContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EvidenciaService(SegRutContAsisContext context)
+        public EvidenciaService(SegRutContAsisContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Crear evidencia
@@ -39,22 +42,43 @@ namespace SegRutContAsis.Business.Services
                 eviObservaciones = requestDTO.eviObservaciones
             };
 
+            if (requestDTO.Archivo != null && requestDTO.Archivo.Length > 0)
+            {
+                var carpeta = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", "Evidencias");
+
+                if (!Directory.Exists(carpeta))
+                    Directory.CreateDirectory(carpeta);
+
+                var extension = Path.GetExtension(requestDTO.Archivo.FileName);
+                var nombreArchivo = $"evi_{Guid.NewGuid()}{extension}";
+
+                var rutaFisica = Path.Combine(carpeta, nombreArchivo);
+
+                using (var stream = new FileStream(rutaFisica, FileMode.Create))
+                {
+                    await requestDTO.Archivo.CopyToAsync(stream);
+                }
+                evidencia.EviArchivoPath = $"Uploads/Evidencias/{nombreArchivo}";
+            }
             _context.Evidencia.Add(evidencia);
             await _context.SaveChangesAsync();
-
             return new EvidenciaResponseDTO
             {
                 eviId = evidencia.eviId,
                 eviFechaCreacion = evidencia.eviFechaCreacion,
                 VisitaId = evidencia.visId,
                 eviTipo = evidencia.eviTipo,
-                eviObservaciones = evidencia.eviObservaciones
+                eviObservaciones = evidencia.eviObservaciones,
+                eviArchivoUrl = evidencia.EviArchivoPath
             };
         }
+
 
         // Obtener evidencia
         public async Task<List<EvidenciaResponseDTO>> ObtenerEvidencia()
         {
+            string baseUrl = $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
+
             return await _context.Evidencia
                 .Include(e => e.Visita)
                 .Where(e => e.Visita.Ruta.rutEstadoDel)
@@ -64,9 +88,12 @@ namespace SegRutContAsis.Business.Services
                     eviFechaCreacion = e.eviFechaCreacion,
                     VisitaId = e.visId,
                     eviTipo = e.eviTipo,
-                    eviObservaciones = e.eviObservaciones
-                }).ToListAsync();
+                    eviObservaciones = e.eviObservaciones,
+                    eviArchivoUrl = string.IsNullOrEmpty(e.EviArchivoPath) ? null : $"{baseUrl}/Uploads/{Path.GetFileName(e.EviArchivoPath)}"
+                })
+                .ToListAsync();
         }
+
 
 
         // Obtener evidencia por ID
