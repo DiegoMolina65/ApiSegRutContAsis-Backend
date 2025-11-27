@@ -29,13 +29,14 @@ namespace SegRutContAsis.Business.Services.Reporte
         public async Task<ReporteActividadResponseDTO> GenerarReporteDiarioAsistenciasAsync(ReporteActividadRequestDTO request)
         {
             var fecha = request.FechaInicio ?? DateTime.Today;
-            var fechaInicioDelDia = fecha.Date; 
-            var fechaFinDelDia = fecha.Date.AddDays(1); 
+            var fechaInicioDelDia = fecha.Date;
+            var fechaFinDelDia = fecha.Date.AddDays(1);
 
             var query = _context.Reportes
-                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario) 
-                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario) 
-                .Include(r => r.Asistencia) 
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                .Include(r => r.Asistencia)
+                .Include(r => r.Cliente).ThenInclude(c => c.DireccionesCliente) 
                 .Where(r =>
                         r.repTipoActividad == "Asistencia"
                         && r.repEstadoDel == true
@@ -70,6 +71,9 @@ namespace SegRutContAsis.Business.Services.Reporte
                 Detalles = asistencias.Select(a => new DetalleActividadDTO
                 {
                     Fecha = a.repFecha,
+                    Hora = a.repFechaCreacion.TimeOfDay,
+                    Vendedor = a.Vendedor?.Usuario?.usrNombreCompleto,
+                    Supervisor = a.Supervisor?.Usuario?.usrNombreCompleto,
                     TipoActividad = a.repTipoActividad,
                     Estado = "Presente",
                     Latitud = a.repLatitud,
@@ -77,6 +81,7 @@ namespace SegRutContAsis.Business.Services.Reporte
                     HoraEntrada = a.Asistencia?.asiHoraEntrada?.TimeOfDay,
                     HoraSalida = a.Asistencia?.asiHoraSalida?.TimeOfDay,
                     Cliente = a.Cliente?.clNombreCompleto,
+                    Direccion = a.Cliente?.DireccionesCliente.FirstOrDefault()?.dirClNombreSucursal, 
                 }).ToList(),
                 TotalAsistencias = asistencias.Count
             };
@@ -84,6 +89,7 @@ namespace SegRutContAsis.Business.Services.Reporte
             return response;
         }
 
+        // Reporte de asistencias por periodo
         public async Task<ReporteActividadResponseDTO> GenerarReporteAsistenciaPeriodoAsync(ReporteActividadRequestDTO request)
         {
             var inicio = request.FechaInicio ?? DateTime.Today.AddDays(-7);
@@ -93,6 +99,7 @@ namespace SegRutContAsis.Business.Services.Reporte
                 .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
                 .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                 .Include(r => r.Asistencia)
+                .Include(r => r.Cliente).ThenInclude(c => c.DireccionesCliente)
                 .Where(r => r.repTipoActividad == "Asistencia"
                             && r.repEstadoDel == true
                             && r.repFecha >= inicio && r.repFecha <= fin);
@@ -123,6 +130,9 @@ namespace SegRutContAsis.Business.Services.Reporte
                 Detalles = asistencias.Select(a => new DetalleActividadDTO
                 {
                     Fecha = a.repFecha,
+                    Hora = a.repFechaCreacion.TimeOfDay,
+                    Vendedor = a.Vendedor?.Usuario?.usrNombreCompleto,
+                    Supervisor = a.Supervisor?.Usuario?.usrNombreCompleto,
                     TipoActividad = a.repTipoActividad,
                     Estado = "Presente",
                     HoraEntrada = a.Asistencia?.asiHoraEntrada?.TimeOfDay,
@@ -130,6 +140,7 @@ namespace SegRutContAsis.Business.Services.Reporte
                     Latitud = a.repLatitud,
                     Longitud = a.repLongitud,
                     Cliente = a.Cliente?.clNombreCompleto,
+                    Direccion = a.Cliente?.DireccionesCliente.FirstOrDefault()?.dirClNombreSucursal, 
                 }).ToList(),
                 TotalAsistencias = asistencias.Count
             };
@@ -147,7 +158,7 @@ namespace SegRutContAsis.Business.Services.Reporte
             var query = _context.Reportes
                 .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
                 .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
-                .Include(r => r.Cliente)
+                .Include(r => r.Cliente).ThenInclude(c => c.DireccionesCliente) 
                 .Include(r => r.Asistencia)
                 .Where(r => (r.repTipoActividad == "Asistencia" || r.repTipoActividad == "Visita")
                             && r.repEstadoDel == true
@@ -172,7 +183,11 @@ namespace SegRutContAsis.Business.Services.Reporte
                 {
                     Fecha = a.repFecha,
                     TipoActividad = a.repTipoActividad,
+                    Hora = a.repFechaCreacion.TimeOfDay,
+                    Vendedor = a.Vendedor?.Usuario?.usrNombreCompleto,
+                    Supervisor = a.Supervisor?.Usuario?.usrNombreCompleto,
                     Cliente = a.Cliente?.clNombreCompleto,
+                    Direccion = a.Cliente?.DireccionesCliente.FirstOrDefault()?.dirClNombreSucursal, 
                     Latitud = a.repLatitud,
                     Longitud = a.repLongitud,
                     Estado = a.repTipoActividad == "Asistencia" ? "Presente" : "Visita Realizada",
@@ -194,7 +209,9 @@ namespace SegRutContAsis.Business.Services.Reporte
 
             var query = _context.Reportes
                 .Include(r => r.Zona)
-                .Include(r => r.Cliente)
+                .Include(r => r.Cliente).ThenInclude(c => c.DireccionesCliente) 
+                .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
                 .Where(r => r.repTipoActividad == "Visita"
                             && r.repEstadoDel == true
                             && r.repFecha >= inicio && r.repFecha <= fin);
@@ -219,7 +236,11 @@ namespace SegRutContAsis.Business.Services.Reporte
                 {
                     Fecha = v.repFecha,
                     TipoActividad = v.repTipoActividad,
+                    Hora = v.repFechaCreacion.TimeOfDay,
+                    Vendedor = v.Vendedor?.Usuario?.usrNombreCompleto,
+                    Supervisor = v.Supervisor?.Usuario?.usrNombreCompleto,
                     Cliente = v.Cliente?.clNombreCompleto,
+                    Direccion = v.Cliente?.DireccionesCliente.FirstOrDefault()?.dirClNombreSucursal, 
                     Zona = v.Zona?.zonNombre!,
                     Latitud = v.repLatitud,
                     Longitud = v.repLongitud,
@@ -239,7 +260,8 @@ namespace SegRutContAsis.Business.Services.Reporte
 
             var query = _context.Reportes
                 .Include(r => r.Vendedor).ThenInclude(v => v.Usuario)
-                .Include(r => r.Cliente)
+                .Include(r => r.Supervisor).ThenInclude(s => s.Usuario)
+                .Include(r => r.Cliente).ThenInclude(c => c.DireccionesCliente) 
                 .Where(r => r.repTipoActividad == "Visita"
                             && r.repEstadoDel == true
                             && r.repFecha >= inicio && r.repFecha <= fin);
@@ -262,7 +284,11 @@ namespace SegRutContAsis.Business.Services.Reporte
                 {
                     Fecha = v.repFecha,
                     TipoActividad = v.repTipoActividad,
+                    Hora = v.repFechaCreacion.TimeOfDay,
+                    Vendedor = v.Vendedor?.Usuario?.usrNombreCompleto,
+                    Supervisor = v.Supervisor?.Usuario?.usrNombreCompleto,
                     Cliente = v.Cliente?.clNombreCompleto,
+                    Direccion = v.Cliente?.DireccionesCliente.FirstOrDefault()?.dirClNombreSucursal, // <--- CORRECCIÓN DE RELACIÓN
                     Latitud = v.repLatitud,
                     Longitud = v.repLongitud,
                     Estado = "Realizada"
@@ -306,18 +332,26 @@ namespace SegRutContAsis.Business.Services.Reporte
 
                             column.Item().Table(table =>
                             {
+                                // MODIFICACIÓN: Definición de Columnas (Usando 'f' para float)
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.RelativeColumn(2);
-                                    columns.RelativeColumn(3);
-                                    columns.RelativeColumn(3);
-                                    columns.RelativeColumn(2);
-                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(2); // Fecha
+                                    columns.RelativeColumn(1.5f); // Hora
+                                    columns.RelativeColumn(2.5f); // Vendedor
+                                    columns.RelativeColumn(2.5f); // Supervisor
+                                    columns.RelativeColumn(2f); // Actividad
+                                    columns.RelativeColumn(3f); // Cliente / Dirección
+                                    columns.RelativeColumn(1.5f); // Latitud
+                                    columns.RelativeColumn(1.5f); // Longitud
                                 });
 
+                                // Cabecera de la Tabla
                                 table.Header(header =>
                                 {
                                     header.Cell().Element(CellStyle).Text("Fecha");
+                                    header.Cell().Element(CellStyle).Text("Hora");
+                                    header.Cell().Element(CellStyle).Text("Vendedor");
+                                    header.Cell().Element(CellStyle).Text("Supervisor");
                                     header.Cell().Element(CellStyle).Text("Actividad");
                                     header.Cell().Element(CellStyle).Text("Cliente / Dirección");
                                     header.Cell().Element(CellStyle).Text("Latitud");
@@ -329,16 +363,43 @@ namespace SegRutContAsis.Business.Services.Reporte
                                                  .AlignCenter();
                                 });
 
+                                // MODIFICACIÓN: Contenido de la Tabla
                                 foreach (var d in datosReporte.Detalles)
                                 {
-                                    table.Cell().Element(CellStyle).Text(d.Fecha.ToString("dd/MM/yyyy"));
-                                    table.Cell().Element(CellStyle).Text(d.TipoActividad);
-                                    table.Cell().Element(CellStyle).Text($"{d.Cliente ?? "-"} / {d.Direccion ?? "-"}");
-                                    table.Cell().Element(CellStyle).Text(d.Latitud?.ToString("F5") ?? "-");
-                                    table.Cell().Element(CellStyle).Text(d.Longitud?.ToString("F5") ?? "-");
+                                    // Estilo para datos centrados (Hora, Latitud, Longitud)
+                                    static IContainer DataCellStyle(IContainer container) =>
+                                        container.PaddingVertical(3).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).AlignCenter();
 
-                                    static IContainer CellStyle(IContainer container) =>
-                                        container.PaddingVertical(3).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1);
+                                    // Estilo para texto largo (Cliente/Dirección)
+                                    static IContainer LeftAlignedCellStyle(IContainer container) =>
+                                        container.PaddingVertical(3).BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).AlignLeft();
+
+                                    // 1. Fecha
+                                    table.Cell().Element(DataCellStyle).Text(d.Fecha.ToString("dd/MM/yyyy"));
+
+                                    // 2. Hora (Se centra y se pone en negrita ligera)
+                                    table.Cell().Element(DataCellStyle)
+                                        .Text(d.Hora?.ToString("hh\\:mm") ?? "-")
+                                        .SemiBold();
+
+                                    // 3. Vendedor
+                                    table.Cell().Element(LeftAlignedCellStyle).Text(d.Vendedor ?? "-");
+
+                                    // 4. Supervisor
+                                    table.Cell().Element(LeftAlignedCellStyle).Text(d.Supervisor ?? "-");
+
+                                    // 5. Actividad
+                                    table.Cell().Element(DataCellStyle).Text(d.TipoActividad);
+
+                                    // 6. Cliente / Dirección
+                                    table.Cell().Element(LeftAlignedCellStyle)
+                                        .Text($"{d.Cliente ?? "-"} / {d.Direccion ?? "-"}");
+
+                                    // 7. Latitud
+                                    table.Cell().Element(DataCellStyle).Text(d.Latitud?.ToString("F5") ?? "-");
+
+                                    // 8. Longitud
+                                    table.Cell().Element(DataCellStyle).Text(d.Longitud?.ToString("F5") ?? "-");
                                 }
                             });
 
@@ -354,7 +415,7 @@ namespace SegRutContAsis.Business.Services.Reporte
                                 col.Item().PaddingTop(5).Text($"Generado por: {datosReporte.GeneradoPor} - {datosReporte.FechaGeneracion:dd/MM/yyyy HH:mm}");
                             });
                         });
-                  
+
                     });
                 });
 

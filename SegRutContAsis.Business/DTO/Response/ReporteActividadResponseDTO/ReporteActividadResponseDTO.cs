@@ -36,6 +36,9 @@ namespace SegRutContAsis.Business.DTO.Response.ReporteActividadResponseDTO
     public class DetalleActividadDTO
     {
         public DateTime Fecha { get; set; }
+        public TimeSpan? Hora { get; set; } 
+        public string? Vendedor { get; set; }
+        public string? Supervisor { get; set; } 
         public string TipoActividad { get; set; } = string.Empty;  
 
         // Asistencia
